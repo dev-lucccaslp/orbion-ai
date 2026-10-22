@@ -1,0 +1,16 @@
+# Dependências (npm install recria)
+node_modules/
+
+# Registros do que os times fizeram em cada projeto: ficam só no PC de quem rodou
+**/.orbion/execucoes/
+**/.orbion/conversas/
+**/.orbion/melhorias/
+**/.orbion/melhorias.json
+**/.orbion/skills-geradas/
+**/.orbion/commits/
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
