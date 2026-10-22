@@ -1,6 +1,9 @@
 # Dependências (npm install recria)
 node_modules/
 
+# Projeto de teste local, onde os times rodam durante o desenvolvimento
+exemplo/
+
 # Registros do que os times fizeram em cada projeto: ficam só no PC de quem rodou
 **/.orbion/execucoes/
 **/.orbion/conversas/

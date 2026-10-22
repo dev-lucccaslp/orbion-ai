@@ -1,9 +1,0 @@
-{
-  "name": "exemplo-loja",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Projeto pequeno para testar o Orbion.ai.",
-  "scripts": {
-    "test": "node --test"
-  }
-}

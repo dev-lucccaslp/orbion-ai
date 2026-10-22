@@ -144,5 +144,3 @@ Funciona como o Controle de Código do VS Code:
 ```
 node src/cli.js <pasta-do-projeto> "o que tu quer" [--time <id>] [--auto]
 ```
-
-A pasta `exemplo/` é um projetinho de teste onde os times já trabalharam.
