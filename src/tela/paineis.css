@@ -470,3 +470,49 @@ details.msg-memoria li { margin: 3px 0; }
 .md-expandir { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 25px; padding: 0; border: 0; border-top: 1px solid var(--borda); background: color-mix(in srgb, var(--texto) 4%, var(--fundo)); color: var(--link, var(--foco)); font-size: 11.5px; cursor: pointer; }
 .md-expandir:hover { background: var(--hover); }
 .md-expandir .codicon { font-size: 13px; }
+
+/* ---------- tokens ---------- */
+
+.chip-tokens { display: inline-flex; align-items: center; gap: 3px; flex: none; font-size: 11px; color: var(--mudo); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: help; }
+.chip-tokens .codicon { font-size: 12px; }
+.chip-tokens.ao-vivo { color: var(--cor, var(--foco)); }
+.msg-acoes .espaco { flex: 1; }
+.conversa-topo .chip-tokens { margin-right: 4px; }
+
+/* ---------- parar o pedido ---------- */
+
+.bt-parar { color: var(--erro); }
+.bt-parar .codicon { color: var(--erro); }
+.msg-andamento { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: var(--mudo); padding: 2px 0; }
+.msg-andamento > .codicon { color: var(--foco); }
+.chat-linha > .bt-parar-pedido { margin-left: auto; height: 26px; width: 30px; padding: 0; justify-content: center; color: var(--erro); border-color: color-mix(in srgb, var(--erro) 50%, transparent); }
+.chat-linha > .bt-parar-pedido[hidden] { display: none; }
+.chat-linha > .bt-parar-pedido:not([hidden]) + .bt { margin-left: 0; }
+.chat-linha.parando .rotulo-enviar { display: none; }
+.chat-linha.parando #bt-enviar { padding: 0 9px; }
+
+/* ---------- prévia das telas ---------- */
+
+.pagina-web { height: 100%; display: flex; flex-direction: column; min-height: 0; user-select: none; }
+.previa-barra { display: flex; align-items: center; gap: 6px; padding: 6px 10px; flex: none; border-bottom: 1px solid var(--borda); background: var(--lateral); }
+.previa-barra > .codicon { color: var(--mudo); }
+.previa-endereco { flex: 1; min-width: 0; height: 26px; font-size: 12px; }
+.previa-barra .bt { height: 26px; }
+.previa-barra .bt.ligado { border-color: #e5484d; color: #e5484d; background: color-mix(in srgb, #e5484d 12%, transparent); }
+.previa-area { position: relative; flex: 1; min-height: 0; background: #fff; }
+.previa-quadro { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; }
+.previa-camada { position: absolute; inset: 0; pointer-events: none; }
+.previa-camada.marcando { pointer-events: auto; cursor: crosshair; outline: 2px dashed color-mix(in srgb, #e5484d 70%, transparent); outline-offset: -2px; }
+.previa-ponto { position: absolute; transform: translate(-50%, -50%); width: 24px; height: 24px; border-radius: 50%; background: #e5484d; color: #fff; font: 700 12px/24px system-ui, sans-serif; text-align: center; box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(0, 0, 0, 0.35); }
+.previa-opinar { flex: none; display: flex; flex-direction: column; gap: 6px; max-height: 42%; overflow-y: auto; padding: 8px 10px; border-top: 1px solid var(--borda); background: var(--lateral); }
+.previa-opinar textarea { width: 100%; min-height: 40px; resize: vertical; font-size: 12.5px; }
+.previa-pontos { display: flex; flex-direction: column; gap: 4px; }
+.previa-pontos:empty { display: none; }
+.previa-ponto-linha { display: flex; align-items: center; gap: 6px; }
+.previa-ponto-linha input { flex: 1; min-width: 0; height: 26px; }
+.previa-num { flex: none; width: 20px; height: 20px; border-radius: 50%; background: #e5484d; color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+.previa-acoes { display: flex; align-items: center; gap: 8px; }
+.previa-acoes .espaco { flex: 1; }
+.previa-destino { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mudo); }
+.previa-destino select { height: 26px; }
+.bt-previa { color: var(--foco); }

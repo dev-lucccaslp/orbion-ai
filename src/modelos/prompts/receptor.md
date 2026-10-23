@@ -7,6 +7,7 @@ Este comentário não vai para a IA. Edite à vontade; cada {{campo}} é trocado
   {{anteriores}}    a conversa até aqui (os pedidos anteriores dela e o que o time fez); no primeiro pedido, os últimos pedidos do projeto
   {{max_tarefas}}   o limite de tarefas por plano, das configurações do projeto
   {{memoria}}       o que o time já aprendeu neste projeto (.orbion/memoria.md)
+  {{projetos}}      os projetos dentro da pasta, quando ela junta vários (vazio se for um só)
 
 A resposta sempre segue o formato do plano (entendimento + tarefas).
 -->
@@ -20,6 +21,8 @@ A resposta sempre segue o formato do plano (entendimento + tarefas).
 # Projeto
 Pasta: {{projeto}}
 Você pode ler os arquivos para planejar melhor, mas não altere nada.
+
+{{projetos}}
 
 {{memoria}}
 
@@ -38,6 +41,7 @@ Responda com o plano no formato JSON pedido:
 - entendimento: o que a pessoa quer, em uma ou duas frases.
 - tarefas: em ordem de execução, com ids t1, t2, t3... O campo "agente" tem que ser um dos ids do time acima. "depende_de" lista os ids das tarefas que precisam estar prontas antes desta.
 - No máximo {{max_tarefas}} tarefas.
+- Se a pasta junta vários projetos, diga na descrição de cada tarefa em qual projeto (subpasta) ela mexe.
 - Tarefas sem dependência entre si rodam ao mesmo tempo quando o agente só lê; quem edita arquivos trabalha um de cada vez. Use "depende_de" só quando uma tarefa precisa mesmo do resultado da outra.
 - Para revisar ou testar código, prefira um verificador de motor diferente do de quem fez (revisão cruzada: um modelo pega erros que o outro não vê).
 - Se o pedido for só uma pergunta, ou não precisar de trabalho do time, devolva "tarefas" vazia e responda no "entendimento".

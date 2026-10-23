@@ -5,6 +5,7 @@ const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { rodarApi } = require('./api');
+const tokens = require('./tokens');
 
 const SISTEMA_API = (cwd) => `Você é um agente do Orbion.ai trabalhando no projeto da pasta ${cwd}. Use as ferramentas para ler o projeto e, quando tiver permissão, editar arquivos e rodar comandos. Caminhos são relativos à pasta do projeto. Responda em português.`;
 
@@ -119,6 +120,11 @@ function traduzirClaude(ev, estado, emitir, cwd) {
       }
       break;
     case 'assistant':
+      // Cada resposta do modelo traz o uso dela: a soma (sem repetir a mesma mensagem) é o "ao vivo".
+      if (ev.message?.id && ev.message.usage) {
+        estado.usoMensagens.set(ev.message.id, tokens.deClaude(ev.message.usage));
+        emitir({ tipo: 'tokens', info: tokens.somar(...estado.usoMensagens.values()) });
+      }
       for (const bloco of ev.message?.content || []) {
         if (bloco.type === 'text' && bloco.text.trim()) emitir({ tipo: 'texto', texto: bloco.text.trim() });
         else if (bloco.type === 'tool_use') {
@@ -136,6 +142,7 @@ function traduzirClaude(ev, estado, emitir, cwd) {
       emitir({ tipo: 'uso', motor: 'claude', info: ev.rate_limit_info });
       break;
     case 'result':
+      if (ev.usage) estado.tokens = tokens.deClaude(ev.usage); // o total da chamada, que vale mais que a soma ao vivo
       // O Claude Code sempre estima o preço em dólar; só é gasto de verdade quando roda com chave de API.
       estado.custo = estado.plano ? null : ev.total_cost_usd ?? null;
       if (!estado.saida && ev.structured_output) estado.saida = ev.structured_output;
@@ -169,6 +176,8 @@ function traduzirCodex(ev, estado, emitir) {
       }
       break;
     case 'turn.completed':
+      estado.tokens = tokens.somar(estado.tokens, tokens.deCodex(ev.usage));
+      emitir({ tipo: 'tokens', info: estado.tokens });
       emitir({ tipo: 'uso', motor: 'codex', info: ev.usage });
       break;
     case 'turn.failed':
@@ -193,14 +202,14 @@ function matarArvore(filho) {
 function rodarAgente({
   motor, comando, cwd, prompt, esquema, pasta, modelo,
   editaArquivos = false, rodaComandos = false, ferramentas = '', esforco = '', argsExtras = '', dirsExtras = [],
-  tempoMaxMs = 30 * 60 * 1000, sinal, aoEvento = () => {}, imagens = [],
+  tempoMaxMs = 0, sinal, aoEvento = () => {}, imagens = [],
 }) {
   if (motor.startsWith('api:')) {
     // Modelo por token: o laço de ferramentas é do próprio Orbion.
     return rodarApi({
       provedor: motor.slice(4), modelo, cwd, prompt, esquema, pasta, editaArquivos, rodaComandos, tempoMaxMs, sinal, aoEvento,
       sistema: SISTEMA_API(cwd), leituraExtra: dirsExtras, imagens,
-    }).then((r) => ({ saida: r.saida, erro: r.erro, cancelado: r.cancelado, custo: null }));
+    }).then((r) => ({ saida: r.saida, erro: r.erro, cancelado: r.cancelado, custo: null, tokens: r.tokens || null }));
   }
   fs.mkdirSync(pasta, { recursive: true });
   fs.writeFileSync(path.join(pasta, 'prompt.md'), prompt);
@@ -216,7 +225,7 @@ function rodarAgente({
   }
   fs.writeFileSync(path.join(pasta, 'comando.txt'), [comando, ...args.map((a) => (a.length > 300 ? `${a.slice(0, 300)}…` : a))].join('\n'));
 
-  const estado = { saida: null, erro: null, textoFinal: '', custo: null };
+  const estado = { saida: null, erro: null, textoFinal: '', custo: null, tokens: null, usoMensagens: new Map() };
   const traduzir = motor === 'codex' ? traduzirCodex : traduzirClaude;
   const emitir = (e) => aoEvento({ ...e, hora: Date.now() });
 
@@ -256,7 +265,7 @@ function rodarAgente({
       if (sinal.aborted) parar();
       else sinal.addEventListener('abort', parar, { once: true });
     }
-    const timer = setTimeout(() => { estourou = true; matarArvore(filho); }, tempoMaxMs);
+    const timer = tempoMaxMs > 0 ? setTimeout(() => { estourou = true; matarArvore(filho); }, tempoMaxMs) : null;
 
     let erroSpawn = null;
     filho.on('error', (e) => {
@@ -282,7 +291,8 @@ function rodarAgente({
       else if (!saida) {
         erro = estado.erro || stderr.trim().split('\n').slice(-3).join(' ') || `O ${motor} saiu com código ${codigo} sem devolver resposta.`;
       }
-      resolve({ saida: erro ? null : saida, erro, cancelado, custo: estado.custo });
+      const usados = estado.tokens || (estado.usoMensagens.size ? tokens.somar(...estado.usoMensagens.values()) : null);
+      resolve({ saida: erro ? null : saida, erro, cancelado, custo: estado.custo, tokens: usados });
     });
   });
 }

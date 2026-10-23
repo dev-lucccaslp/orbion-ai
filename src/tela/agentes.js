@@ -389,7 +389,7 @@ PAGINAS.agente = {
           campo('Modelo', a.motor.startsWith('api:') && !(S.modelos?.[a.motor] || []).length ? h('span', {}, 'Teste o provedor em ', h('a', { href: '#', onclick: (e) => { e.preventDefault(); abrirContas(); } }, 'Contas e modelos'), ' para listar os modelos.') : null,
             seletorModelo(a.motor, a.modelo, (v) => { a.modelo = v; marcarSuja(aba); redesenharPagina(aba); })),
           campo('Esforço de raciocínio', null, escolha(aba, 'esforco', ESFORCOS)),
-          campo('Tempo máximo (min)', 'Vazio usa o do projeto.', entrada(aba, 'tempoMax', { type: 'number', min: 1, max: 240, placeholder: String(S.projeto.config?.tempoMaxMin ?? 30) }))),
+          campo('Tempo máximo (min)', 'Vazio usa o do projeto. 0 é sem limite.', entrada(aba, 'tempoMax', { type: 'number', min: 0, max: 600, placeholder: S.projeto.config?.tempoMaxMin ? String(S.projeto.config.tempoMaxMin) : 'sem limite' }))),
         ),
 
       h('section', { class: 'grupo' },

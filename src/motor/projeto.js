@@ -7,7 +7,7 @@ const { execFile } = require('node:child_process');
 const PADRAO = {
   aprovarPlano: true,
   maxVoltas: 3,
-  tempoMaxMin: 30,
+  tempoMaxMin: 0, // 0 = sem limite: o agente trabalha até terminar
   maxTarefas: 6,
   pedidosAnteriores: 3,
   paralelo: true,
@@ -18,7 +18,10 @@ const arquivoConfig = (projeto) => path.join(projeto, '.orbion', 'config.json');
 
 function lerConfig(projeto) {
   try {
-    return { ...PADRAO, ...JSON.parse(fs.readFileSync(arquivoConfig(projeto), 'utf8')) };
+    const salvo = JSON.parse(fs.readFileSync(arquivoConfig(projeto), 'utf8'));
+    // O 30 era o padrão antigo, gravado junto com outras opções: só vale se a pessoa escolheu.
+    if (salvo.tempoMaxMin === 30 && !salvo.tempoEscolhido) salvo.tempoMaxMin = 0;
+    return { ...PADRAO, ...salvo };
   } catch {
     return { ...PADRAO };
   }
@@ -31,7 +34,8 @@ function salvarConfig(projeto, parcial) {
     ...atual,
     ...parcial,
     maxVoltas: lim(parcial.maxVoltas ?? atual.maxVoltas, 0, 10, PADRAO.maxVoltas),
-    tempoMaxMin: lim(parcial.tempoMaxMin ?? atual.tempoMaxMin, 1, 240, PADRAO.tempoMaxMin),
+    tempoMaxMin: lim(parcial.tempoMaxMin ?? atual.tempoMaxMin, 0, 600, PADRAO.tempoMaxMin),
+    tempoEscolhido: parcial.tempoMaxMin != null ? true : atual.tempoEscolhido,
     maxTarefas: lim(parcial.maxTarefas ?? atual.maxTarefas, 1, 20, PADRAO.maxTarefas),
     pedidosAnteriores: lim(parcial.pedidosAnteriores ?? atual.pedidosAnteriores, 0, 10, PADRAO.pedidosAnteriores),
     aprovarPlano: parcial.aprovarPlano ?? atual.aprovarPlano,

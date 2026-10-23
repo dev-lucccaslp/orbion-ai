@@ -48,6 +48,7 @@ function desenharConversa() {
       h('button', { class: 'chip-time', title: 'Modo da conversa (uma skill)', onclick: (e) => escolherModo(e.currentTarget) }, ic('sparkle'), h('span', { class: 'chip-time-nome' }, pref.modo || 'Conversa livre'), ic('chevron-down')),
       h('button', { class: 'chip-time', title: 'Qual IA responde', onclick: (e) => escolherMotorConversa(e.currentTarget) }, ic('hubot'), h('span', { class: 'chip-time-nome' }, rotuloMotor(pref.motor, pref.modelo)), ic('chevron-down')),
       h('span', { class: 'espaco' }),
+      chipTokens(somarTokens(...(CV.atual?.mensagens || []).map((m) => m.tokens))),
       h('button', { class: 'bt-icone', title: 'Histórico de conversas', onclick: () => alternarHistorico('conversa') }, ic('history')),
       h('button', { class: 'bt-icone', title: 'Nova conversa', onclick: () => iniciarConversa(pref.modo) }, ic('add'))),
     h('div', { class: 'chat-mensagens', id: 'conversa-mensagens' }),
@@ -92,14 +93,14 @@ function atualizarMensagensConversa() {
   }
   for (const m of msgs) {
     if (m.papel === 'pessoa') itens.push(h('div', { class: 'msg msg-pessoa' }, imagensDaMensagem(m.anexos), m.texto ? h('div', { class: 'msg-balao' }, m.texto) : null));
-    else itens.push(balaoIa(m.texto, m.erro));
+    else itens.push(balaoIa(m.texto, m.erro, false, m.tokens));
   }
   if (CV.rodando) itens.push(balaoIa(CV.parcial, null, true));
   box.replaceChildren(...itens);
   if (noFim || CV.rodando) box.scrollTop = box.scrollHeight;
 }
 
-function balaoIa(texto, erro, vivo = false) {
+function balaoIa(texto, erro, vivo = false, tokens = null) {
   return h('div', { class: `msg msg-ia${vivo ? ' vivo' : ''}` },
     h('div', { class: 'msg-conteudo' },
       vivo && CV.acoes.length ? h('div', { class: 'msg-acoes-ia' }, CV.acoes.slice(-3).map((a) => h('div', { class: 'msg-agora mono' }, ic('eye'), a))) : null,
@@ -107,7 +108,9 @@ function balaoIa(texto, erro, vivo = false) {
       erro ? h('p', { class: 'erro-texto' }, erro) : null,
       !vivo && texto ? h('div', { class: 'msg-acoes' },
         h('button', { class: 'bt-mini', onclick: () => { navigator.clipboard.writeText(texto); aviso('Copiado.', 'ok'); } }, ic('copy'), 'Copiar'),
-        h('button', { class: 'bt-mini', onclick: () => virarPedido(texto) }, ic('organization'), 'Virar pedido')) : null));
+        h('button', { class: 'bt-mini', onclick: () => virarPedido(texto) }, ic('organization'), 'Virar pedido'),
+        h('span', { class: 'espaco' }),
+        chipTokens(tokens)) : null));
 }
 
 const redesenharConversa = debounce(atualizarMensagensConversa, 60);

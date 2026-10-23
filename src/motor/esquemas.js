@@ -38,7 +38,7 @@ const PLANO = {
 const PASSE = {
   type: 'object',
   additionalProperties: false,
-  required: ['status', 'resumo', 'arquivos', 'recado_para_proximo', 'pergunta', 'aprendizados'],
+  required: ['status', 'resumo', 'arquivos', 'recado_para_proximo', 'pergunta', 'aprendizados', 'previa'],
   properties: {
     status: { type: 'string', enum: ['concluida', 'falhou', 'bloqueada'] },
     resumo: { type: 'string', description: 'Markdown curto: a conclusão em uma ou duas frases primeiro; depois listas, tabelas e blocos de código só se precisar.' },
@@ -49,6 +49,10 @@ const PASSE = {
       type: 'array',
       items: { type: 'string' },
       description: 'Fatos duráveis sobre o projeto que valem para os próximos pedidos (convenções, comandos, armadilhas). [] se nada novo.',
+    },
+    previa: {
+      type: 'string',
+      description: 'Se você criou ou mudou algo que se vê (página, tela, componente): o .html relativo ao projeto que mostra o resultado, ou o endereço http://localhost:PORTA de um servidor que já esteja rodando. "" se não tiver nada para ver.',
     },
   },
 };

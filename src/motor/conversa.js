@@ -11,6 +11,7 @@ const { rodarApi } = require('./api');
 const { lerSkill } = require('./skills');
 const projetoCfg = require('./projeto');
 const anexosMod = require('./anexos');
+const tokens = require('./tokens');
 
 const pasta = (projeto) => path.join(projeto, '.orbion', 'conversas');
 const arquivoDe = (projeto, id) => path.join(pasta(projeto), `${path.basename(id)}.json`);
@@ -75,6 +76,7 @@ function falarClaude({ projeto, c, texto, comando, sinal, emitir }) {
     let resto = '';
     let final = '';
     let erro = null;
+    let usados = null;
     p.stdout.setEncoding('utf8');
     p.stdout.on('data', (d) => {
       resto += d;
@@ -91,6 +93,7 @@ function falarClaude({ projeto, c, texto, comando, sinal, emitir }) {
           }
         } else if (e.type === 'rate_limit_event') emitir({ tipo: 'uso', motor: 'claude', info: e.rate_limit_info });
         else if (e.type === 'result') {
+          if (e.usage) usados = tokens.deClaude(e.usage);
           final = e.result || '';
           if (e.is_error) erro = e.result || 'erro';
         }
@@ -103,8 +106,8 @@ function falarClaude({ projeto, c, texto, comando, sinal, emitir }) {
     sinal?.addEventListener('abort', parar, { once: true });
     p.on('close', () => {
       sinal?.removeEventListener('abort', parar);
-      if (sinal?.aborted) return resolve({ texto: final, erro: 'Cancelado.' });
-      resolve({ texto: final, erro: erro || (!final ? stderr.trim().split('\n').pop() || 'O Claude não respondeu.' : null) });
+      if (sinal?.aborted) return resolve({ texto: final, erro: 'Cancelado.', tokens: usados });
+      resolve({ texto: final, erro: erro || (!final ? stderr.trim().split('\n').pop() || 'O Claude não respondeu.' : null), tokens: usados });
     });
     p.stdin.on('error', () => {});
     p.stdin.end(texto);
@@ -131,12 +134,12 @@ async function enviar({ projeto, id, texto, anexos = [], comandos, sinal, aoEven
         else if (e.tipo === 'acao' || e.tipo === 'uso') emitir(e);
       },
     });
-    r = { texto: x.texto, erro: x.erro };
+    r = { texto: x.texto, erro: x.erro, tokens: x.tokens };
   } else {
     // O Claude abre as imagens pelo caminho, com a ferramenta Read.
     r = await falarClaude({ projeto, c, texto: [texto, anexosMod.paraPrompt(projeto, guardados)].filter(Boolean).join('\n\n'), comando: comandos.claude, sinal, emitir });
   }
-  c.mensagens.push({ papel: 'ia', texto: r.texto || '', erro: r.erro || null, hora: Date.now() });
+  c.mensagens.push({ papel: 'ia', texto: r.texto || '', erro: r.erro || null, hora: Date.now(), ...(tokens.total(r.tokens) ? { tokens: r.tokens } : {}) });
   salvar(projeto, c);
   return c;
 }

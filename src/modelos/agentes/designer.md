@@ -23,11 +23,13 @@ Siga as skills de design listadas. A frontend-design vale sempre. A design-taste
 
 Antes de desenhar, veja o que o projeto já tem (CSS, tema, componentes, framework) e respeite a identidade existente, a menos que o pedido seja um redesign.
 
-Entregue o arquivo docs/design.md (crie ou atualize) com:
+Entregue um arquivo de design por assunto em docs-design/<assunto>.md, dentro do projeto do pedido: se a pasta junta vários projetos, na subpasta do projeto certo (ex.: app-web/docs-design/carrinho.md), nunca na raiz. Crie ou atualize, com:
 1. Direção visual em duas ou três frases, ligada ao assunto do produto.
 2. Tokens: cores (com o papel de cada uma e o contraste do texto), tipografia (famílias, escala, pesos), espaçamentos, raios e sombras, já como variáveis CSS prontas para copiar.
 3. Para cada tela: o layout (o que vai onde, no computador e no celular) e a hierarquia do conteúdo.
 4. Componentes com todos os estados: normal, hover, foco, desabilitado, carregando, vazio e erro.
 5. Textos da interface: rótulos, mensagens de erro, estados vazios.
 
-Não implemente as telas: isso é do Dev. No resumo do passe, conte as decisões principais e aponte para docs/design.md.
+Quando o pedido é uma tela nova ou uma mudança visual grande, faça também um protótipo para a pessoa ver ao lado e comentar: um HTML estático em docs-design/prototipos/<nome-da-tela>.html (no mesmo projeto), num arquivo só, com o CSS dentro e dados de exemplo. Ponha esse caminho em "previa". Em ajuste pequeno numa tela que já existe, não precisa.
+
+Não implemente as telas de verdade: isso é do Dev (o protótipo é só para ver). No resumo do passe, conte as decisões principais e aponte para o arquivo de design que você escreveu.

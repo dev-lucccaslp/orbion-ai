@@ -37,6 +37,8 @@ Na primeira vez, rode `npm install` nesta pasta.
 5. **Revisão cruzada.** Quem verifica (Tester, Revisor) pode devolver o trabalho para quem fez, até um limite de voltas. Deixe o verificador num motor diferente do de quem fez (por exemplo, Dev no Claude e Tester no Codex): um modelo pega erros que o outro não vê.
 6. **Memória do projeto.** O que os agentes aprendem (convenções, comandos, armadilhas) fica em `.orbion/memoria.md` e entra nos próximos pedidos de todos os times. Tu pode editar esse arquivo.
 7. **Tu decide.** Tu aprova o plano, responde dúvidas e pode **intervir** num agente no meio do trabalho, pelo Voo ou pela Orquestra: ele para, tu diz o que fazer diferente, e ele recomeça com a tua orientação.
+   - **Parar**: enquanto o Receptor monta o plano, o botão Parar (na mensagem dele ou o quadrado ao lado do Enviar) para na hora e devolve o texto para a caixa. Serve para corrigir um pedido escrito errado sem gastar mais tokens, e esse pedido não entra na memória da conversa.
+   - Com o time já trabalhando, "Parar o pedido" pede confirmação, porque arquivos podem já ter mudado.
 8. **Verificar não é mudar.** O Receptor classifica cada pedido:
    - **Pergunta**: ele mesmo responde.
    - **Verificação** ("vamos ver se…", "confere…", "valida…"): os agentes só leem e consultam. Ninguém edita arquivos, e o verificador não manda ninguém voltar para corrigir.
@@ -82,6 +84,18 @@ Funciona como o Controle de Código do VS Code:
 - **Barra de status**: a branch (clique para trocar) e o mesmo sincronizar.
 - **Mais ações (⋯)**: pull, push, fetch, preparar, despreparar e descartar tudo, e abrir no GitHub.
 - **Projeto sem git**: "Inicializar repositório" ou "Publicar no GitHub". O "Publicar no GitHub" inicia o git, faz o primeiro commit e cria o repositório (privado ou público) pelo GitHub CLI.
+
+## Prévia das telas
+
+Quando um agente cria ou muda algo que se vê, a tela que ele construiu abre numa aba ao lado da Orquestra.
+- **De onde vem**: o agente aponta, no campo `previa` do passe, um `.html` do projeto ou o `http://localhost:PORTA` de um servidor que já esteja rodando. Se ele não apontar mas tiver criado um `.html`, o Orbion usa esse.
+- **O Designer**: numa tela nova ou mudança visual grande, ele faz também um protótipo em `docs/prototipos/<tela>.html` só para ver.
+- **Na aba**: a prévia recarrega sozinha quando os arquivos mudam. Na barra tem o endereço, recarregar e abrir no navegador. Também abre pelo botão **Ver a tela** na mensagem do agente, por Ver → Prévia de uma tela… ou por `/previa`.
+- **Opinar**:
+  - escreva o que mudar e, se quiser, ligue **Marcar pontos** e clique na tela. Cada ponto numerado ganha o seu comentário;
+  - **Mandar** cria um pedido na mesma conversa, com uma foto da prévia já com os pontos;
+  - o pedido vai para quem mexeu no arquivo, ou para o Receptor decidir (quando quem mostrou só especificou, como o Designer). O "Para" deixa escolher outro agente.
+- **Segurança**: a prévia é servida só neste PC (127.0.0.1), atrás de um código aleatório no caminho. Pastas e arquivos ocultos (`.git`, `.orbion`, `.env`) nunca saem.
 
 ## Conversa, skills e ferramentas
 
@@ -135,7 +149,13 @@ Funciona como o Controle de Código do VS Code:
 ## Bom saber
 
 - **Uso do plano**: cada agente é uma chamada ao Claude ou ao Codex, e dois times juntos gastam o dobro. O Voo e a barra de status mostram quanto já foi usado.
+- **Tokens**:
+  - **Onde aparecem**: no cabeçalho de cada agente (ao vivo enquanto ele trabalha), na linha do fim de cada pedido, nos cartões do Voo e em cada resposta da Conversa. Passe o mouse para ver a divisão: entrada nova, cache lido, cache criado e saída.
+  - **O que pesa**: cada chamada ao Claude Code já começa com uns 10 a 15 mil tokens fixos (o prompt dele e o do Orbion), quase tudo do cache. Por isso economiza mais fazer menos chamadas do que escrever pedidos curtos.
+  - **Como economizar**: pedido direto com @agente (não passa pelo Receptor), Só validar (1 ou 2 tarefas, sem revisão), modelo menor nos agentes simples (Haiku 5.5) e menos tarefas e voltas nas configurações do projeto.
 - **Comandos sem confirmação**: os agentes com permissão rodam comandos e editam arquivos sem pedir confirmação. Usa em projetos que estejam no Git, para poder desfazer.
+- **Sem limite de tempo**: cada agente trabalha até terminar. Se quiser um limite, coloque nas configurações do projeto ou no editor do agente (vazio ou 0 é sem limite). Para parar antes, use o Parar.
+- **Pasta com vários projetos** (como um monorepo): o Orbion reconhece as subpastas que são projetos e avisa o Receptor e os agentes. Tudo o que eles criam vai dentro do projeto do pedido, nunca solto na raiz. O design vai em `<projeto>/docs-design/<assunto>.md` e a arquitetura em `<projeto>/docs-arquitetura/<assunto>.md`.
 - **Isolamento**: os agentes do Claude rodam sem os teus conectores, plugins e hooks.
 - **Modelos por API**: cada passo é uma chamada ao provedor, que cobra por token (menos nos grátis e nos locais). Modelos pequenos às vezes erram no uso das ferramentas; para editar código, prefira um modelo forte.
 - **Codex**: o Tester e o Revisor vêm com o modelo `gpt-6-astra`, porque o Codex da linha de comando recusa o modelo do teu `config.toml` com a conta do ChatGPT.

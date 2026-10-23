@@ -293,6 +293,7 @@ async function tratarMudancaDeArquivos(ev) {
   }
   await Promise.all([...pastas].filter((p) => S.arvore.filhos.has(p)).map(carregarPasta));
   for (const rel of ev.rels) arquivoMudouNoDisco(rel);
+  previasMudaram(ev.rels);
   cacheArquivos.quando = 0;
   atualizarGit();
   if (S.vista === 'explorador') desenharLateral();

@@ -6,6 +6,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
+const http = require('node:http');
+const { randomUUID } = require('node:crypto');
 const { Execucao, Trava, listarExecucoes, lerExecucao, excluirFio, CONFIG_PADRAO } = require('./motor/orquestrador');
 const ag = require('./motor/agentes');
 const times = require('./motor/times');
@@ -52,11 +54,57 @@ const TIPOS = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.gif': 'image/gif', '.webp': 'image/webp', '.ttf': 'font/ttf', '.woff': 'font/woff', '.woff2': 'font/woff2',
+  '.mjs': 'text/javascript; charset=utf-8', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.map': 'application/json',
+  '.mp4': 'video/mp4', '.webm': 'video/webm', '.wasm': 'application/wasm', '.htm': 'text/html; charset=utf-8',
 };
 
 function dentroDe(base, alvo) {
   const r = path.relative(base, alvo);
   return r === '' || (!r.startsWith('..') && !path.isAbsolute(r));
+}
+
+/* ---------- prévia das telas que os agentes constroem ---------- */
+
+// Um servidor só deste PC (127.0.0.1) mostra os arquivos do projeto aberto, atrás de um código aleatório
+// no caminho. Pastas e arquivos ocultos (.git, .orbion, .env...) nunca saem.
+let previa = null; // { servidor, porta, codigo, projeto }
+
+function servidorDePrevia(projeto) {
+  if (previa?.projeto === projeto) return Promise.resolve(previa);
+  previa?.servidor.close();
+  previa = null;
+  const codigo = randomUUID().replace(/-/g, '').slice(0, 16);
+  const servidor = http.createServer((req, res) => {
+    const naoTem = () => { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end('Não encontrado'); };
+    if (req.method !== 'GET' && req.method !== 'HEAD') return naoTem();
+    let partes;
+    try { partes = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname).split('/').slice(1); } catch { return naoTem(); }
+    if (partes.shift() !== codigo || partes.some((p) => p.startsWith('.'))) return naoTem();
+    let alvo = path.resolve(projeto, ...partes);
+    if (!dentroDe(projeto, alvo) || !fs.existsSync(alvo)) return naoTem();
+    if (fs.statSync(alvo).isDirectory()) alvo = path.join(alvo, 'index.html');
+    if (!fs.existsSync(alvo)) return naoTem();
+    res.writeHead(200, { 'Content-Type': TIPOS[path.extname(alvo).toLowerCase()] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+    if (req.method === 'HEAD') return res.end();
+    fs.createReadStream(alvo).pipe(res);
+  });
+  return new Promise((ok, erro) => {
+    servidor.once('error', erro);
+    servidor.listen(0, '127.0.0.1', () => {
+      previa = { servidor, porta: servidor.address().port, codigo, projeto };
+      ok(previa);
+    });
+  });
+}
+
+async function enderecoDaPrevia(projeto, alvo) {
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(alvo)) return alvo; // um servidor que já roda (npm run dev)
+  // O agente às vezes devolve o caminho completo: vale se estiver dentro do projeto.
+  const bruto = path.isAbsolute(String(alvo || '')) ? path.relative(projeto, alvo) : String(alvo || '');
+  if (bruto.startsWith('..')) throw new Error('A prévia tem que estar dentro da pasta do projeto.');
+  const rel = bruto.replace(/\\/g, '/').replace(/^\.?\//, '');
+  const s = await servidorDePrevia(projeto);
+  return `http://127.0.0.1:${s.porta}/${s.codigo}/${rel.split('/').map(encodeURIComponent).join('/')}`;
 }
 
 async function servir(req) {
@@ -524,6 +572,13 @@ const acoes = {
 
   'abrir:pasta': (_e, alvo) => shell.openPath(alvo),
   'app:notificar': (_e, titulo, texto) => notificar(titulo, texto),
+  'previa:endereco': (_e, projeto, alvo) => enderecoDaPrevia(projeto, alvo),
+  'previa:abrirFora': (_e, url) => { if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i.test(url)) shell.openExternal(url); },
+  // A foto de um pedaço da janela (a prévia com os pontos marcados), em PNG.
+  'previa:capturar': async (_e, r) => {
+    const img = await janela.webContents.capturePage({ x: Math.round(r.x), y: Math.round(r.y), width: Math.max(1, Math.round(r.width)), height: Math.max(1, Math.round(r.height)) });
+    return img.toPNG().toString('base64');
+  },
   'abrir:link': (_e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); },
 };
 

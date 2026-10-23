@@ -88,7 +88,7 @@ PAGINAS.config = {
         h('div', { class: 'grade-campos' },
           campo('Voltas de correção', 'Quantas vezes um verificador pode devolver o trabalho.', texto(p.maxVoltas, (v) => salvarProjeto({ maxVoltas: v }), { type: 'number', min: 0, max: 10 })),
           campo('Máximo de tarefas por plano', null, texto(p.maxTarefas, (v) => salvarProjeto({ maxTarefas: v }), { type: 'number', min: 1, max: 20 })),
-          campo('Tempo máximo por tarefa (min)', 'Cada agente pode ter o seu.', texto(p.tempoMaxMin, (v) => salvarProjeto({ tempoMaxMin: v }), { type: 'number', min: 1, max: 240 })),
+          campo('Tempo máximo por tarefa (min)', 'Vazio ou 0: sem limite, o agente trabalha até terminar. Cada agente pode ter o seu.', texto(p.tempoMaxMin || '', (v) => salvarProjeto({ tempoMaxMin: v || 0 }), { type: 'number', min: 0, max: 600, placeholder: 'sem limite' })),
           campo('Pedidos anteriores no contexto', 'Quantos o Receptor vê para ter contexto.', texto(p.pedidosAnteriores, (v) => salvarProjeto({ pedidosAnteriores: v }), { type: 'number', min: 0, max: 10 })))) : null,
 
       S.projeto ? h('section', { class: 'grupo' },

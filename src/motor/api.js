@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const provedores = require('./provedores');
+const tokens = require('./tokens');
 
 const PESADOS = new Set(['node_modules', '.git', 'dist', 'build', 'out', '.next', '.venv', 'venv', '__pycache__', 'target', '.orbion']);
 const MAX_PASSOS = 40;
@@ -190,7 +191,7 @@ function lerImagem(arquivo) {
 
 async function rodarApi({
   provedor, modelo, cwd, prompt, sistema, esquema, editaArquivos = false, rodaComandos = false,
-  historico = [], leituraExtra = [], tempoMaxMs = 30 * 60 * 1000, sinal, aoEvento = () => {}, pasta, imagens = [],
+  historico = [], leituraExtra = [], tempoMaxMs = 0, sinal, aoEvento = () => {}, pasta, imagens = [],
 }) {
   const emitir = (e) => aoEvento({ ...e, hora: Date.now() });
   let p;
@@ -206,7 +207,7 @@ async function rodarApi({
   const controle = new AbortController();
   const parar = () => controle.abort();
   sinal?.addEventListener('abort', parar, { once: true });
-  const timer = setTimeout(parar, tempoMaxMs);
+  const timer = tempoMaxMs > 0 ? setTimeout(parar, tempoMaxMs) : null;
   const tools = ferramentas({ editaArquivos, rodaComandos, esquema });
   const mensagens = [
     { role: 'system', content: [sistema, esquema ? 'Quando terminar, chame a ferramenta "entregar" com o resultado. Não termine sem chamar.' : ''].filter(Boolean).join('\n\n') },
@@ -220,12 +221,15 @@ async function rodarApi({
     fs.writeFileSync(path.join(pasta, 'comando.txt'), `API ${p.nome}\n${p.base}\nmodelo: ${modeloUsado}\nferramentas: ${tools.map((t) => t.function.name).join(', ')}`);
   }
   const uso = { input_tokens: 0, output_tokens: 0 };
+  let usados = tokens.vazio();
   let insistencias = 0;
   try {
     for (let passo = 0; passo < MAX_PASSOS; passo++) {
       const resp = await completar(p, { model: modeloUsado, messages: mensagens, tools, tool_choice: 'auto', temperature: 0.2 }, controle.signal);
       uso.input_tokens += resp.usage?.prompt_tokens || 0;
       uso.output_tokens += resp.usage?.completion_tokens || 0;
+      usados = tokens.somar(usados, tokens.deApi(resp.usage));
+      emitir({ tipo: 'tokens', info: usados });
       emitir({ tipo: 'uso', motor: 'api', info: { ...uso, provedor: p.nome, modelo: modeloUsado } });
       const msg = resp.choices?.[0]?.message;
       if (!msg) throw new Error(`${p.nome} devolveu uma resposta vazia.`);
@@ -262,7 +266,7 @@ async function rodarApi({
     if (controle.signal.aborted && !cancelado) erro = `Passou do tempo máximo de ${Math.round(tempoMaxMs / 60000)} min.`;
     if (e.status === 400 && /tool/i.test(e.message)) erro = `${e.message}. Esse modelo parece não aceitar ferramentas; escolha outro.`;
     else if (e.status === 400 && imagens.length && /image|vision|multimodal/i.test(e.message)) erro = `${e.message}. Esse modelo parece não aceitar imagens; escolha um com visão.`;
-    return { saida: null, erro: cancelado ? 'Cancelado.' : erro, cancelado, custo: null, mensagens };
+    return { saida: null, erro: cancelado ? 'Cancelado.' : erro, cancelado, custo: null, mensagens, tokens: usados };
   } finally {
     clearTimeout(timer);
     sinal?.removeEventListener('abort', parar);
@@ -270,7 +274,7 @@ async function rodarApi({
 
   function fim({ saida = null, texto = '', mensagens: m }) {
     if (pasta && saida) fs.writeFileSync(path.join(pasta, 'resposta.json'), JSON.stringify(saida, null, 2));
-    return { saida, texto, erro: null, cancelado: false, custo: null, mensagens: m };
+    return { saida, texto, erro: null, cancelado: false, custo: null, mensagens: m, tokens: usados };
   }
 }
 

@@ -16,7 +16,7 @@ const CANAIS = [
   'terminal:shells', 'terminal:criar', 'terminal:fechar',
   'janela:titulo', 'janela:devtools', 'janela:recarregar', 'janela:sair',
   'execucao:iniciar', 'execucao:responder', 'execucao:cancelar', 'execucao:intervir', 'execucao:ler', 'execucao:vivas',
-  'abrir:pasta', 'abrir:link', 'app:notificar',
+  'abrir:pasta', 'abrir:link', 'app:notificar', 'previa:endereco', 'previa:abrirFora', 'previa:capturar',
   'skill:ler', 'skill:salvar', 'skill:escrever',
   'provedores:presets', 'provedores:listar', 'provedores:salvar', 'provedores:remover', 'provedores:modelos',
   'contas:situacao', 'contas:instalar',

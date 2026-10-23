@@ -221,7 +221,8 @@ function compositorPedido(campo) {
       h('button', { type: 'button', class: 'chip-validar', id: 'chip-validar', title: 'Só validar: o time lê e consulta, mas ninguém altera nada (/validar)', onclick: () => alternarSoValidar() }, ic('eye'), 'Só validar'),
       botaoAnexar('pedido'),
       h('span', { class: 'dica', id: 'chat-dica' }),
-      h('button', { type: 'submit', class: 'bt bt-principal', id: 'bt-enviar', title: 'Enviar (Enter)' }, ic('send'), 'Enviar')));
+      h('button', { type: 'button', class: 'bt bt-parar-pedido', id: 'bt-parar-pedido', hidden: true, title: 'Parar o pedido em andamento', onclick: () => { const e = pedidoRodandoAqui(); if (e) pararPedido(e); } }, ic('debug-stop')),
+      h('button', { type: 'submit', class: 'bt bt-principal', id: 'bt-enviar', title: 'Enviar (Enter)' }, ic('send'), h('span', { class: 'rotulo-enviar' }, 'Enviar'))));
   ligarAnexos('pedido', campo, form);
   return form;
 }
@@ -254,6 +255,11 @@ function atualizarCompositor() {
   ].flat().filter(Boolean));
   const ocupado = vivosDoProjeto().some((v) => v.estado?.time === t?.id);
   $('#chip-validar')?.classList.toggle('ligado', !!S.soValidar);
+  const parar = $('#bt-parar-pedido');
+  if (parar) {
+    parar.hidden = !pedidoRodandoAqui();
+    parar.parentElement.classList.toggle('parando', !parar.hidden); // o Enviar vira só o ícone para caber
+  }
   $('#chat-dica').textContent = S.soValidar
     ? `Só validar: ${a ? a.nome : 'o time'} lê e consulta, ninguém altera nada.`
     : a
@@ -307,6 +313,7 @@ const COMANDOS_PEDIDO = [
   { cmd: '/conversa', desc: 'Conversar sobre o projeto, sem mudar nada', icone: 'comment', fazer: () => iniciarConversa('') },
   { cmd: '/melhorias', desc: 'Pedir sugestões de melhoria do projeto', icone: 'lightbulb', fazer: () => abrirMelhorias(true) },
   { cmd: '/skill', desc: 'Criar uma skill nova', icone: 'sparkle', fazer: () => abrirNovaSkill() },
+  { cmd: '/previa', desc: 'Abrir a prévia de uma tela (um .html do projeto ou http://localhost)', icone: 'preview', fazer: () => pedirPrevia() },
   { cmd: '/voo', desc: 'Ver o que as IAs estão fazendo', icone: 'pulse', fazer: () => abrirDireita('voo') },
   { cmd: '/memoria', desc: 'Abrir a memória do projeto', icone: 'book', fazer: abrirMemoria },
   { cmd: '/terminal', desc: 'Abrir um terminal', icone: 'terminal', fazer: () => novoTerminal() },
@@ -622,6 +629,7 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
   }
   const receptor = agentesDe(e.time).find((a) => a.papel === 'receptor');
   const m = metricas(eventos);
+  const aoVivo = (vivo && S.vivos.get(e.id)?.tokensVivos) || {};
   const saida = [];
 
   saida.push(h('div', { class: 'msg msg-pessoa' },
@@ -636,7 +644,9 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
     saida.push(h('div', { class: 'msg-direto', cor: direto.cor }, ic(e.tipo === 'verificacao' ? 'eye' : 'arrow-right'), `Direto para ${direto.nome}, sem o Receptor${e.tipo === 'verificacao' ? ' · só verificação' : ''}`));
   } else saida.push(mensagemAgente(receptor, {
     titulo: e.tipo === 'verificacao' ? 'Plano · só verificação' : e.tipo === 'mudanca' ? 'Plano · mudança' : 'Plano',
-    status: planejando ? 'rodando' : 'concluida',
+    status: planejando ? 'rodando' : !e.tarefas.length && ['cancelada', 'falhou', 'interrompida'].includes(e.status) ? (e.status === 'falhou' ? 'falhou' : 'cancelada') : 'concluida',
+    tokens: somarTokens(e.tokensReceptor, aoVivo.receptor),
+    tokensAoVivo: !!aoVivo.receptor,
     corpo: [
       planejando && !m.get('receptor') ? h('p', { class: 'msg-agora' }, ic('loading', 'codicon-modifier-spin'), 'Lendo o pedido e o projeto…') : null,
       blocoExecucao(`${e.id}:receptor`, eventos.filter((l) => l.tarefa === 'receptor'), planejando),
@@ -650,6 +660,7 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
       })) : null,
       e.erro ? h('p', { class: 'erro-texto' }, e.erro) : null,
     ],
+    acoes: [planejando ? h('button', { class: 'bt-mini bt-parar', title: 'Parar agora (o texto volta para a caixa)', onclick: () => pararPedido(e) }, ic('debug-stop'), 'Parar') : null],
   }));
 
   const ordem = [...e.tarefas].filter((t) => t.status !== 'pendente' || t.passe || t.tentativas)
@@ -663,6 +674,8 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
       status: t.status,
       tempo: t.inicio ? duracao((t.status === 'rodando' ? Date.now() : t.fim || Date.now()) - t.inicio) : null,
       inicio: t.status === 'rodando' ? t.inicio : null,
+      tokens: somarTokens(t.tokens, aoVivo[t.id]),
+      tokensAoVivo: !!aoVivo[t.id],
       corpo: [
         t.correcao ? h('p', { class: 'msg-correcao' }, ic('reply'), `Devolvido por ${t.correcao.de} (volta ${t.correcao.volta})`) : null,
         t.status === 'na_fila' ? h('p', { class: 'msg-agora' }, ic('lock'), 'Esperando a vez de escrever (outro agente está editando arquivos).') : null,
@@ -680,6 +693,7 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
         t.erro ? h('p', { class: 'erro-texto' }, t.erro) : null,
       ],
       acoes: [
+        t.passe?.previa ? h('button', { class: 'bt-mini bt-previa', title: t.passe.previa, onclick: () => abrirPrevia(t.passe.previa, origemDaPrevia(t, e)) }, ic('preview'), 'Ver a tela') : null,
         x ? h('button', { class: 'bt-mini', title: 'Abrir o log desta tarefa no painel de baixo', onclick: () => { S.filtro = t.id; abrirPainelEm('log'); desenharLog(); } }, ic('output'), 'Log') : null,
         vivo && ['rodando', 'na_fila'].includes(t.status) ? h('button', { class: 'bt-mini', onclick: () => intervir(e.id, t.id) }, ic('debug-pause'), 'Intervir') : null,
       ],
@@ -687,15 +701,44 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
   }
 
   if (vivo && e.status === 'aguardando' && e.pergunta) saida.push(portao(e));
+  if (vivo && e.status === 'rodando') {
+    saida.push(h('div', { class: 'msg-andamento' },
+      ic('loading', 'codicon-modifier-spin'), h('span', {}, 'O time está trabalhando'),
+      h('button', { class: 'bt-mini bt-parar', onclick: () => pararPedido(e) }, ic('debug-stop'), 'Parar o pedido')));
+  }
 
   if (!vivo && ['concluida', 'falhou', 'cancelada', 'interrompida'].includes(e.status)) {
     const feitas = e.tarefas.filter((t) => t.status === 'concluida').length;
     const fim = Math.max(0, ...e.tarefas.map((t) => t.fim || 0));
     saida.push(h('div', { class: `msg-fim st-${e.status}` },
       ic(e.status === 'concluida' ? 'pass-filled' : e.status === 'falhou' ? 'error' : 'circle-slash'),
-      h('span', {}, [ST_EXECUCAO[e.status], `${feitas} de ${e.tarefas.length} tarefas`, fim ? duracao(fim - e.criadaEm) : null, e.gastoApi ? `US$ ${e.gastoApi.toFixed(2)} na chave de API` : null].filter(Boolean).join(' · '))));
+      h('span', {}, [ST_EXECUCAO[e.status], `${feitas} de ${e.tarefas.length} tarefas`, fim ? duracao(fim - e.criadaEm) : null, totalTokens(e.tokens) ? `${fmtTokens(totalTokens(e.tokens))} tokens` : null, e.gastoApi ? `US$ ${e.gastoApi.toFixed(2)} na chave de API` : null].filter(Boolean).join(' · '))));
   }
   return saida;
+}
+
+/* ---------- parar um pedido ---------- */
+
+/** Para o pedido na hora. Enquanto o Receptor ainda monta o plano nada mudou: para sem perguntar e o
+ *  texto volta para a caixa, para corrigir. Depois disso pode haver arquivo mudado, então confirma. */
+function pararPedido(e) {
+  const planejando = e.status === 'planejando';
+  if (!planejando && !confirm('Parar este pedido? O que os agentes já mudaram nos arquivos fica como está.')) return;
+  api('execucao:cancelar', e.id).catch(() => {});
+  if (!planejando) return;
+  const campo = $('#pedido');
+  if (campo && !campo.value.trim()) {
+    campo.value = e.pedido;
+    S.rascunhoPedido = e.pedido;
+    campo.focus();
+    campo.setSelectionRange(campo.value.length, campo.value.length);
+  }
+  aviso('Pedido parado. O texto voltou para a caixa.', 'info');
+}
+
+/** O pedido desta conversa que ainda está rodando (para o botão ao lado do Enviar). */
+function pedidoRodandoAqui() {
+  return S.fioIds.map((id) => S.vivos.get(id)).find((v) => v?.rodando && v.estado && ['planejando', 'rodando'].includes(v.estado.status))?.estado || null;
 }
 
 /* ---------- textos longos dos agentes ---------- */
@@ -766,7 +809,7 @@ function iconeStatus(status) {
   return ic(mapa[status] || 'circle-large-outline', `status-${status}${status === 'rodando' ? ' codicon-modifier-spin' : ''}`);
 }
 
-function mensagemAgente(a, { titulo, status, tempo, inicio, corpo, acoes = [] }) {
+function mensagemAgente(a, { titulo, status, tempo, inicio, corpo, acoes = [], tokens = null, tokensAoVivo = false }) {
   return h('div', { class: `msg msg-agente st-${status}`, cor: a?.cor || '#8b93a7' },
     h('div', { class: 'msg-avatar', title: a ? `${a.nome} · ${a.motor}${a.modelo ? ` · ${nomeModelo(a.modelo)}` : ''}` : '' }, ic(a?.icone || 'person')),
     h('div', { class: 'msg-conteudo' },
@@ -775,6 +818,7 @@ function mensagemAgente(a, { titulo, status, tempo, inicio, corpo, acoes = [] })
         a ? h('span', { class: `chip-motor motor-${a.motor}` }, a.modelo ? nomeModelo(a.modelo) : a.motor) : null,
         h('span', { class: 'msg-titulo' }, titulo),
         h('span', { class: 'espaco' }),
+        chipTokens(tokens, { ao_vivo: tokensAoVivo }),
         tempo ? h('span', { class: 'msg-tempo', 'data-inicio': inicio || null }, tempo) : null,
         iconeStatus(status)),
       ...corpo.filter(Boolean),
@@ -853,12 +897,15 @@ function desenharVoo() {
 
 function cartaoDoPedido({ estado, eventos, vivo }) {
   const m = metricas(eventos);
+  const aoVivo = (vivo && S.vivos.get(estado.id)?.tokensVivos) || {};
+  const totalPedido = somarTokens(estado.tokens, ...Object.values(aoVivo));
   const feitas = estado.tarefas.filter((t) => t.status === 'concluida').length;
   const total = estado.tarefas.length || 1;
   return h('section', { class: 'voo-pedido', cor: estado.timeCor || '#bd93f9' },
     h('header', { class: 'voo-pedido-topo', onclick: () => mostrarExecucao(estado.id).then(() => abrirDireita('orquestra')) },
       h('span', { class: 'chip' }, estado.timeNome),
       h('span', { class: 'voo-pedido-texto', title: estado.pedido }, estado.pedido),
+      chipTokens(totalPedido, { ao_vivo: vivo }),
       h('span', { class: `pilula st-${estado.status}` }, ST_EXECUCAO[estado.status] || estado.status)),
     h('div', { class: 'progresso' }, h('i', { estilo: { width: `${Math.round((feitas / total) * 100)}%` } })),
     h('div', { class: 'voo-orbita' }, desenharOrbita(estado, { largura: 280, altura: 120 })),
@@ -880,6 +927,7 @@ function cartaoDoPedido({ estado, eventos, vivo }) {
           h('span', { title: 'Arquivos criados ou editados' }, ic('file'), x?.arquivos.size || 0),
           x?.avisos ? h('span', { class: 'aviso-num', title: 'Avisos' }, ic('warning'), x.avisos) : null,
           t.voltas ? h('span', { title: 'Voltas de correção' }, ic('debug-restart'), t.voltas) : null,
+          chipTokens(somarTokens(t.tokens, aoVivo[t.id]), { ao_vivo: !!aoVivo[t.id] }),
           t.gastoApi ? h('span', { title: 'Cobrado na chave de API (no plano não tem custo por token)' }, `US$ ${t.gastoApi.toFixed(2)}`) : null),
         h('div', { class: 'cartao-acoes' },
           h('button', { class: 'bt-mini', onclick: () => { mostrarExecucao(estado.id).then(() => { S.filtro = t.id; abrirPainelEm('log'); desenharLog(); }); } }, ic('output'), 'Log'),
@@ -959,18 +1007,26 @@ async function enviarPedido() {
     return; // as imagens ficam no compositor para tentar de novo
   }
   limparAnexos('pedido');
-  const v = garantirVivo({ execucao: estado.id, projeto: S.projeto.caminho });
-  v.estado = v.estado || estado;
-  S.fio = estado.fio;
-  if (!S.fioIds.includes(estado.id)) S.fioIds.push(estado.id);
-  S.vendo = v.estado;
-  S.eventos = v.eventos;
-  S.filtro = null;
-  S.abertas.clear();
   campo.value = '';
   S.rascunhoPedido = '';
+  await seguirPedido(estado);
+}
+
+/** Depois de começar um pedido, mostra ele na conversa dele (que pode ser outra, quando vem da prévia). */
+async function seguirPedido(estado) {
+  const v = garantirVivo({ execucao: estado.id, projeto: S.projeto.caminho });
+  v.estado = v.estado || estado;
+  S.filtro = null;
+  S.abertas.clear();
   await recarregarProjeto();
-  desenharTudo();
+  if (S.fio && S.fio === estado.fio) {
+    if (!S.fioIds.includes(estado.id)) S.fioIds.push(estado.id);
+    S.vendo = v.estado;
+    S.eventos = v.eventos;
+    desenharTudo();
+  } else {
+    await abrirFio(estado.fio || estado.id, estado.id);
+  }
 }
 
 function garantirVivo(ev) {
@@ -1007,6 +1063,12 @@ async function tratarEventoExecucao(ev) {
   if (ev.tipo === 'estado') {
     const antes = v.estado?.status;
     v.estado = ev.estado;
+    if (S.projeto?.caminho === ev.projeto) previaDoEstado(ev.estado);
+    // Quem terminou a tentativa já tem os tokens somados no estado: o ao vivo dela sai.
+    for (const k of Object.keys(v.tokensVivos || {})) {
+      const rodando = k === 'receptor' ? ev.estado.status === 'planejando' : ev.estado.tarefas.find((t) => t.id === k)?.status === 'rodando';
+      if (!rodando) delete v.tokensVivos[k];
+    }
     if (S.vendo?.id === ev.estado.id) S.vendo = ev.estado;
     redesenharDireita();
     redesenharToques();
@@ -1018,6 +1080,11 @@ async function tratarEventoExecucao(ev) {
       if (!vendoVivo() || S.vendo?.id !== ev.estado.id) await mostrarExecucao(ev.estado.id);
       abrirDireita('orquestra');
     }
+    return;
+  }
+  if (ev.tipo === 'tokens') {
+    (v.tokensVivos ||= {})[ev.tarefa] = ev.info;
+    redesenharDireita();
     return;
   }
   if (ev.tipo === 'log') {

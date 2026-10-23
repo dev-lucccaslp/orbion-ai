@@ -75,6 +75,27 @@ function permissoes(a) {
 
 const hoje = () => new Date().toLocaleDateString('pt-BR');
 
+// O que marca uma subpasta como um projeto de verdade.
+const MARCAS_PROJETO = ['package.json', '.git', 'pyproject.toml', 'requirements.txt', 'go.mod', 'pom.xml', 'composer.json', 'Cargo.toml', 'deno.json', 'AGENTS.md', 'CLAUDE.md', 'README.md'];
+
+/** As subpastas que são projetos próprios (quando a pasta aberta junta vários, como um monorepo). */
+function subprojetos(projeto) {
+  try {
+    return fs.readdirSync(projeto, { withFileTypes: true })
+      .filter((d) => d.isDirectory() && !d.name.startsWith('.') && d.name !== 'node_modules')
+      .filter((d) => MARCAS_PROJETO.some((m) => fs.existsSync(path.join(projeto, d.name, m))))
+      .map((d) => d.name);
+  } catch {
+    return [];
+  }
+}
+
+function secaoProjetos(projeto) {
+  const lista = subprojetos(projeto);
+  if (lista.length < 2) return '';
+  return `# Projetos dentro desta pasta\nEsta pasta junta vários projetos: ${lista.join(', ')}. Cada pedido é sobre um (ou alguns) deles.\n- Tudo o que for criado (código, documentos, protótipos) vai dentro da subpasta do projeto do pedido. Nunca crie pasta nova solta na raiz.\n- Documentos de design vão em <projeto>/docs-design/<assunto>.md e de arquitetura em <projeto>/docs-arquitetura/<assunto>.md.`;
+}
+
 const secaoMemoria = (memoria) => (memoria ? `# Memória do projeto\nO que o time já aprendeu neste projeto em pedidos anteriores:\n${memoria}` : '');
 
 function promptReceptor({ receptor, time, pedido, projeto, anteriores, conversa = '', somenteLeitura = false, anexos = [], config, memoria = '' }) {
@@ -85,6 +106,7 @@ function promptReceptor({ receptor, time, pedido, projeto, anteriores, conversa 
     data: hoje(),
     memoria: secaoMemoria(memoria),
     max_tarefas: config.maxTarefas,
+    projetos: secaoProjetos(projeto),
     time: time.map((a) => `- ${a.id} — ${a.nome} [${a.motor}]${a.papel === 'verificador' ? ' (verificador: pode reprovar e devolver para correção)' : ''}: ${a.descricao} ${permissoes(a)}`).join('\n'),
     // Numa conversa, vai o que já foi dito nela; no primeiro pedido, os últimos pedidos do projeto.
     anteriores: conversa || (anteriores.length
@@ -102,6 +124,7 @@ function promptTarefa({ agente, tarefa, estado, agentes, projeto, skills, memori
       : 'Você NÃO pode criar nem alterar arquivos: entregue tudo no resumo do passe.',
     agente.rodaComandos ? 'Você pode rodar comandos no terminal do projeto.' : 'Você não pode rodar comandos.',
     'Faça só a sua tarefa: as outras partes ficam com os colegas do plano.',
+    subprojetos(projeto).length > 1 && agente.editaArquivos ? 'Esta pasta junta vários projetos: crie e mude arquivos só dentro do projeto do pedido. Nada de pasta nova solta na raiz.' : null,
     estado.tipo === 'verificacao' ? 'Este pedido é SÓ DE VERIFICAÇÃO: leia, consulte e responda no resumo. Não altere arquivos, dados nem configurações, nem aqui nem em outros sistemas (nada de INSERT/UPDATE/DELETE, deploy, publicar ou reiniciar). Se achar algo para corrigir, diga o que e onde no resumo.' : null,
   ].filter(Boolean).map((r) => `- ${r}`).join('\n');
 
@@ -113,6 +136,7 @@ function promptTarefa({ agente, tarefa, estado, agentes, projeto, skills, memori
     projeto,
     data: hoje(),
     memoria: secaoMemoria(memoria),
+    projetos: secaoProjetos(projeto),
     pedido: [`> ${estado.pedido.replace(/\n/g, '\n> ')}`, anexosParaPrompt(projeto, estado.anexos)].filter(Boolean).join('\n\n'),
     entendimento: estado.entendimento,
     plano: estado.tarefas

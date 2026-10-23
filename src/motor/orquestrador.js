@@ -20,6 +20,7 @@ const { promptReceptor, promptTarefa } = require('./prompts');
 const { PLANO, PASSE } = require('./esquemas');
 const projetoCfg = require('./projeto');
 const { caminhos: anexosCaminhos } = require('./anexos');
+const tokens = require('./tokens');
 const times = require('./times');
 
 const pastaExecucoes = (projeto) => path.join(projeto, '.orbion', 'execucoes');
@@ -157,6 +158,11 @@ class Execucao extends EventEmitter {
   }
 
   log(tarefaId, agente, ev) {
+    // O contador ao vivo vai só para a tela: não entra no log do pedido.
+    if (ev.tipo === 'tokens') {
+      this.emit('evento', { tipo: 'tokens', tarefa: tarefaId, info: ev.info });
+      return;
+    }
     if (ev.tipo === 'uso') {
       this.emit('evento', { tipo: 'uso', motor: ev.motor, info: ev.info });
       return;
@@ -200,12 +206,18 @@ class Execucao extends EventEmitter {
       esforco: agente.esforco,
       argsExtras: agente.argsExtras,
       dirsExtras: skills.map((s) => s.pasta),
-      tempoMaxMs: (agente.tempoMax || this.config.tempoMaxMin) * 60 * 1000,
+      tempoMaxMs: (Number(agente.tempoMax) || Number(this.config.tempoMaxMin) || 0) * 60 * 1000, // 0 = sem limite
       sinal,
       aoEvento: (e) => this.log(tarefaId, agente, e),
       imagens: anexosCaminhos(this.projeto, this.estado.anexos || []),
     });
     this.estado.gastoApi += r.custo || 0;
+    if (tarefaId === 'receptor') this.estado.tokensReceptor = tokens.somar(this.estado.tokensReceptor, r.tokens);
+    else {
+      const t = this.estado.tarefas.find((x) => x.id === tarefaId);
+      if (t) t.tokens = tokens.somar(t.tokens, r.tokens);
+    }
+    this.estado.tokens = tokens.somar(this.estado.tokensReceptor, ...this.estado.tarefas.map((x) => x.tokens));
     return r;
   }
 
@@ -372,6 +384,7 @@ class Execucao extends EventEmitter {
       recado_para_proximo: passe.recado_para_proximo || '',
       pergunta: passe.pergunta || '',
       aprendizados: Array.isArray(passe.aprendizados) ? passe.aprendizados.filter(Boolean) : [],
+      previa: previaDoPasse(passe),
     };
     if (this.config.memoria && t.passe.aprendizados.length) {
       projetoCfg.anotarMemoria(this.projeto, agente.nome, t.passe.aprendizados);
@@ -486,7 +499,7 @@ function listarExecucoes(projeto) {
       try {
         const e = JSON.parse(fs.readFileSync(path.join(base, id, 'estado.json'), 'utf8'));
         return {
-          id: e.id, fio: e.fio || e.id, pedido: e.pedido, status: e.status, criadaEm: e.criadaEm, gastoApi: e.gastoApi,
+          id: e.id, fio: e.fio || e.id, pedido: e.pedido, status: e.status, criadaEm: e.criadaEm, gastoApi: e.gastoApi, tokens: e.tokens || null,
           time: e.time || 'principal', timeNome: e.timeNome || 'Time principal', timeCor: e.timeCor, direto: e.direto || null,
         };
       } catch {
@@ -495,6 +508,14 @@ function listarExecucoes(projeto) {
     })
     .filter(Boolean)
     .sort((a, b) => b.criadaEm - a.criadaEm);
+}
+
+/** O que abrir para a pessoa ver: o que o agente disse, ou o .html que ele criou ou mexeu (o index primeiro). */
+function previaDoPasse(passe) {
+  const dita = String(passe.previa || '').trim().replace(/\\/g, '/');
+  if (dita) return dita;
+  const htmls = (Array.isArray(passe.arquivos) ? passe.arquivos : []).map((a) => String(a).replace(/\\/g, '/').replace(/:\d+$/, '')).filter((a) => /\.html?$/i.test(a));
+  return htmls.find((a) => /(^|\/)index\.html?$/i.test(a)) || htmls[0] || '';
 }
 
 const corta = (t, n) => (t.length > n ? `${t.slice(0, n)}…` : t);
@@ -512,6 +533,7 @@ function conversaDoFio(projeto, fio, idAtual, limiteCaracteres = 14000) {
     } catch {
       continue;
     }
+    if (e.status === 'cancelada' && !(e.tarefas || []).length) continue; // parado antes do plano: texto errado, não conta
     const linhas = [`## A pessoa pediu: ${e.pedido}`];
     if (e.entendimento) linhas.push(`Entendimento: ${e.entendimento}`);
     for (const t of e.tarefas || []) linhas.push(`- ${t.id} ${t.agente} (${t.status}): ${t.titulo}${t.passe?.resumo ? ` → ${corta(t.passe.resumo, 700)}` : ''}`);

@@ -323,3 +323,33 @@ function ampliarImagem(url, nome) {
 for (const tipo of ['dragover', 'drop']) {
   window.addEventListener(tipo, (e) => { if ([...(e.dataTransfer?.types || [])].includes('Files') && !e.defaultPrevented) e.preventDefault(); });
 }
+
+/* ---------- tokens ---------- */
+
+const totalTokens = (t) => (t ? (t.entrada || 0) + (t.cacheLido || 0) + (t.cacheCriado || 0) + (t.saida || 0) : 0);
+
+function somarTokens(...lista) {
+  const r = { entrada: 0, cacheLido: 0, cacheCriado: 0, saida: 0 };
+  for (const t of lista) if (t) for (const k of Object.keys(r)) r[k] += t[k] || 0;
+  return r;
+}
+
+/** 850 · 9,8 mil · 123 mil · 1,2 mi */
+function fmtTokens(n) {
+  if (n < 1000) return String(n);
+  if (n < 1e6) return `${(n / 1000).toFixed(n < 1e4 ? 1 : 0).replace('.', ',')} mil`;
+  return `${(n / 1e6).toFixed(1).replace('.', ',')} mi`;
+}
+
+/** "12 mil tokens", com a divisão no título. Nada quando ainda não há contagem. */
+function chipTokens(t, { ao_vivo = false } = {}) {
+  const n = totalTokens(t);
+  if (!n) return null;
+  const num = (x) => (x || 0).toLocaleString('pt-BR');
+  const cache = t.cacheLido ? Math.round((t.cacheLido / n) * 100) : 0;
+  return h('span', {
+    class: `chip-tokens${ao_vivo ? ' ao-vivo' : ''}`,
+    title: [`${num(n)} tokens${ao_vivo ? ' até agora' : ''}`, `Entrada nova: ${num(t.entrada)}`, `Cache lido: ${num(t.cacheLido)} (${cache}%)`, `Cache criado: ${num(t.cacheCriado)}`, `Saída: ${num(t.saida)}`,
+      'No plano não se paga por token, mas tudo isso gasta o limite de 5 horas e o da semana. O cache lido pesa bem menos que a entrada nova.'].join('\n'),
+  }, ic('dashboard'), fmtTokens(n));
+}

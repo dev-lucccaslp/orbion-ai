@@ -68,6 +68,7 @@ function itensDosMenus() {
       ['Conversa', 'comment', () => abrirDireita('conversa'), 'Ctrl+L'],
       ['Voo: o que as IAs estão fazendo', 'pulse', () => abrirDireita('voo'), 'Ctrl+Shift+V'],
       ['Ao vivo', 'output', () => abrirPainelEm('log')],
+      ['Prévia de uma tela…', 'preview', pedirPrevia, null, !!S.projeto],
       '-',
       ['Barra lateral', 'layout-sidebar-left', alternarLateral, 'Ctrl+B'],
       ['Painel de baixo', 'layout-panel', alternarPainel, 'Ctrl+J'],
