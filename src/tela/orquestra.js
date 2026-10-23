@@ -641,7 +641,7 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
       planejando && !m.get('receptor') ? h('p', { class: 'msg-agora' }, ic('loading', 'codicon-modifier-spin'), 'Lendo o pedido e o projeto…') : null,
       blocoExecucao(`${e.id}:receptor`, eventos.filter((l) => l.tarefa === 'receptor'), planejando),
       e.tipo === 'verificacao' && e.tarefas.length ? h('p', { class: 'msg-tipo verificacao' }, ic('eye'), 'Só verificação: o time lê e consulta, ninguém altera nada.') : null,
-      e.entendimento ? h('p', {}, e.entendimento) : null,
+      e.entendimento ? blocoLongo(`${e.id}:entendimento`, e.entendimento) : null,
       e.tarefas.length ? h('ol', { class: 'msg-plano' }, e.tarefas.map((t) => {
         const a = agentePorId(t.agente);
         return h('li', { class: `st-${t.status}`, cor: a?.cor },
@@ -657,7 +657,6 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
   for (const t of ordem) {
     const a = agentePorId(t.agente);
     const x = m.get(t.id);
-    const aberta = S.abertas.has(t.id);
     const resumo = t.passe?.resumo || '';
     saida.push(mensagemAgente(a, {
       titulo: `${t.id} · ${t.titulo}`,
@@ -669,13 +668,15 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
         t.status === 'na_fila' ? h('p', { class: 'msg-agora' }, ic('lock'), 'Esperando a vez de escrever (outro agente está editando arquivos).') : null,
         t.status === 'rodando' && !x ? h('p', { class: 'msg-agora' }, ic('loading', 'codicon-modifier-spin'), 'Começando…') : null,
         blocoExecucao(`${e.id}:${t.id}`, eventos.filter((l) => l.tarefa === t.id), t.status === 'rodando'),
-        resumo ? h('div', { class: `msg-resumo pre${aberta ? ' aberta' : ''}`, onclick: () => { if (aberta) S.abertas.delete(t.id); else S.abertas.add(t.id); atualizarChat(); } }, resumo) : null,
+        resumo ? blocoLongo(`${e.id}:${t.id}`, resumo) : null,
         t.passe?.arquivos?.length ? h('div', { class: 'arquivos' }, t.passe.arquivos.map((arq) => {
           const rel = normalizarCaminho(arq);
           return h('button', { class: 'arquivo', title: S.git ? 'Ver as mudanças' : 'Abrir', onclick: () => (S.git ? abrirDiff(rel) : abrirArquivo(rel)) }, iconeDe(nomeDe(rel)), rel);
         })) : null,
-        t.passe?.recado_para_proximo ? h('p', { class: 'msg-recado' }, h('strong', {}, 'Recado: '), t.passe.recado_para_proximo) : null,
-        t.passe?.aprendizados?.length ? h('p', { class: 'msg-memoria' }, ic('book'), `Anotou na memória: ${t.passe.aprendizados.join(' · ')}`) : null,
+        t.passe?.recado_para_proximo ? h('div', { class: 'msg-recado' }, h('span', { class: 'msg-rotulo' }, ic('arrow-right'), 'Recado para o próximo'), markdown(t.passe.recado_para_proximo)) : null,
+        t.passe?.aprendizados?.length ? h('details', { class: 'msg-memoria' },
+          h('summary', {}, ic('book'), `Anotou ${t.passe.aprendizados.length} aprendizado${t.passe.aprendizados.length > 1 ? 's' : ''} na memória`),
+          h('ul', {}, t.passe.aprendizados.map((x) => h('li', {}, trechoMd(x))))) : null,
         t.erro ? h('p', { class: 'erro-texto' }, t.erro) : null,
       ],
       acoes: [
@@ -695,6 +696,19 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
       h('span', {}, [ST_EXECUCAO[e.status], `${feitas} de ${e.tarefas.length} tarefas`, fim ? duracao(fim - e.criadaEm) : null, e.gastoApi ? `US$ ${e.gastoApi.toFixed(2)} na chave de API` : null].filter(Boolean).join(' · '))));
   }
   return saida;
+}
+
+/* ---------- textos longos dos agentes ---------- */
+
+/** Markdown que começa recolhido quando é comprido (a conclusão vem primeiro); um botão abre e fecha. */
+function blocoLongo(chave, texto) {
+  const comprido = texto.length > 650 || texto.split('\n').length > 12;
+  if (!comprido) return h('div', { class: 'msg-texto' }, markdown(texto));
+  const aberto = S.abertas.has(chave);
+  return h('div', { class: `msg-texto longo${aberto ? ' aberto' : ''}` },
+    h('div', { class: 'msg-texto-corpo' }, markdown(texto)),
+    h('button', { class: 'msg-ver-tudo', onclick: () => { if (aberto) S.abertas.delete(chave); else S.abertas.add(chave); atualizarChat(); } },
+      ic(aberto ? 'chevron-up' : 'chevron-down'), aberto ? 'Recolher' : 'Ver tudo'));
 }
 
 /* ---------- a execução de cada agente, dentro da conversa ---------- */
@@ -788,7 +802,7 @@ function portao(e) {
   campo.addEventListener('keydown', (ev) => teclaDeChat(ev, () => botoes[botoes.length - 1].click()));
   const caixa = h('div', { class: 'msg-portao' },
     h('h4', {}, ic(p.tipo === 'falha' ? 'warning' : 'bell-dot'), p.tipo === 'aprovar_plano' ? 'Pode começar?' : p.titulo),
-    p.tipo !== 'aprovar_plano' ? h('p', { class: 'pre' }, p.texto) : h('p', {}, 'Confira o plano acima antes de liberar o time.'),
+    p.tipo !== 'aprovar_plano' ? markdown(p.texto) : h('p', {}, 'Confira o plano acima antes de liberar o time.'),
     p.efeito ? h('p', { class: `msg-efeito${/^Só verificação/.test(p.efeito) ? ' verificacao' : ''}` }, ic(/^Só verificação/.test(p.efeito) ? 'eye' : 'edit'), p.efeito) : null,
     campo,
     h('div', { class: 'msg-acoes direita' }, botoes));

@@ -53,9 +53,14 @@ Critério de pronto: {{tarefa.criterio_pronto}}
 # Como terminar
 Sua resposta final é o "passe de bastão" para o próximo agente, no formato JSON pedido:
 - status: "concluida" se você cumpriu o critério de pronto; "falhou" se não conseguiu, ou se você verifica o trabalho de outro e encontrou problema; "bloqueada" se depende de uma decisão que só a pessoa pode tomar.
-- resumo: o que você fez ou concluiu, com os detalhes que o próximo precisa (requisitos, decisões, problemas com passos para reproduzir).
+- resumo: a pessoa lê isto num painel estreito, então seja breve e use Markdown.
+  - Comece com a conclusão em uma ou duas frases: o que você achou ou fez.
+  - Depois, só os detalhes que o próximo ou a pessoa precisam (requisitos, decisões, evidências, passos para reproduzir), em listas curtas.
+  - Números e comparações vão numa tabela Markdown (| coluna | coluna | com a linha | --- |).
+  - Código, SQL, comandos e trechos de log vão em bloco com a linguagem (```sql, ```js, ```bash).
+  - Não repita o pedido nem o que já está no recado ou nos aprendizados.
 - arquivos: caminhos, relativos ao projeto, que você criou ou alterou ([] se nenhum).
-- recado_para_proximo: o que o próximo agente precisa saber ou tomar cuidado.
+- recado_para_proximo: em uma ou duas frases, o que o próximo agente precisa saber ou tomar cuidado ("" se nada).
 - pergunta: a pergunta para a pessoa, só quando o status for "bloqueada"; senão "".
 - aprendizados: fatos duráveis sobre o projeto que vão ajudar o time nos próximos pedidos (uma convenção, um comando que funciona, uma armadilha). Só o que for novo e valer de novo; [] se nada.
 Escreva em português.

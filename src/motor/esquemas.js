@@ -41,7 +41,7 @@ const PASSE = {
   required: ['status', 'resumo', 'arquivos', 'recado_para_proximo', 'pergunta', 'aprendizados'],
   properties: {
     status: { type: 'string', enum: ['concluida', 'falhou', 'bloqueada'] },
-    resumo: { type: 'string' },
+    resumo: { type: 'string', description: 'Markdown curto: a conclusão em uma ou duas frases primeiro; depois listas, tabelas e blocos de código só se precisar.' },
     arquivos: { type: 'array', items: { type: 'string' } },
     recado_para_proximo: { type: 'string' },
     pergunta: { type: 'string' },
