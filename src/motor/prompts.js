@@ -5,6 +5,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { paraPrompt: anexosParaPrompt } = require('./anexos');
 
 const PADROES = path.join(__dirname, '..', 'modelos', 'prompts');
 const NOMES_PADRAO = ['receptor.md', 'tarefa.md'];
@@ -76,11 +77,11 @@ const hoje = () => new Date().toLocaleDateString('pt-BR');
 
 const secaoMemoria = (memoria) => (memoria ? `# Memória do projeto\nO que o time já aprendeu neste projeto em pedidos anteriores:\n${memoria}` : '');
 
-function promptReceptor({ receptor, time, pedido, projeto, anteriores, conversa = '', somenteLeitura = false, config, memoria = '' }) {
+function promptReceptor({ receptor, time, pedido, projeto, anteriores, conversa = '', somenteLeitura = false, anexos = [], config, memoria = '' }) {
   return preencher(lerModelo(projeto, receptor.modeloPrompt || 'receptor.md'), {
     agente: receptor,
     projeto,
-    pedido: somenteLeitura ? `${pedido}\n\n(A pessoa marcou "Só validar": o tipo é verificacao. Ninguém pode alterar nada; planeje só leitura e consultas.)` : pedido,
+    pedido: [pedido, somenteLeitura ? '(A pessoa marcou "Só validar": o tipo é verificacao. Ninguém pode alterar nada; planeje só leitura e consultas.)' : '', anexosParaPrompt(projeto, anexos)].filter(Boolean).join('\n\n'),
     data: hoje(),
     memoria: secaoMemoria(memoria),
     max_tarefas: config.maxTarefas,
@@ -112,7 +113,7 @@ function promptTarefa({ agente, tarefa, estado, agentes, projeto, skills, memori
     projeto,
     data: hoje(),
     memoria: secaoMemoria(memoria),
-    pedido: `> ${estado.pedido.replace(/\n/g, '\n> ')}`,
+    pedido: [`> ${estado.pedido.replace(/\n/g, '\n> ')}`, anexosParaPrompt(projeto, estado.anexos)].filter(Boolean).join('\n\n'),
     entendimento: estado.entendimento,
     plano: estado.tarefas
       .map((t) => `${t.id === tarefa.id ? '→' : ' '} ${t.id} [${nomeDe(t.agente)}] ${t.titulo} (${STATUS[t.status] || t.status})`)

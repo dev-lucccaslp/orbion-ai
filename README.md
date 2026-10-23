@@ -86,6 +86,7 @@ Funciona como o Controle de Código do VS Code:
 ## Conversa, skills e ferramentas
 
 - **Conversa** (aba no painel da direita, Ctrl+L): falar sobre o projeto com uma IA que lê os arquivos, mas não altera nada. Escolha o modo (uma skill) e quem responde. Uma resposta vira pedido para o time com **Virar pedido**.
+- **Imagens**: nos dois chats, cole com Ctrl+V (um print, por exemplo), arraste para a caixa ou use o botão de imagem. São até 8 por mensagem, de até 10 MB cada (PNG, JPG, GIF ou WebP). Elas ficam em `.orbion/anexos` do projeto, que o git ignora. Cada agente recebe do jeito do motor dele: o Claude abre a imagem pelo caminho, o Codex recebe com `-i` e o modelo por API recebe dentro da mensagem (ele precisa ter visão). Clique numa imagem para ampliar.
 - **Histórico** (relógio no topo da Orquestra e da Conversa): as conversas de cada aba, agrupadas por Hoje, Ontem, Últimos 7 dias…, com busca e excluir. Nada some: ao abrir o projeto, cada aba volta na última conversa, e o + começa uma nova.
 - **Grill-me** (menu Time, ou `/grill` no pedido): a IA te questiona em rodadas, cada pergunta com uma resposta recomendada, até o plano ficar claro. O resumo vira pedido.
 - **Skills que já vêm no Orbion**: grill-me, planejar-projeto, sugerir-melhorias, revisao-seguranca, tdd, criar-skill e explicar-projeto. O Orbion também acha as tuas skills do Claude Code, do Codex e dos plugins. Elas aparecem na vista Extensões, no editor do agente e nos modos da Conversa.

@@ -20,6 +20,7 @@ const conversas = require('./motor/conversa');
 const assistentes = require('./motor/assistentes');
 const criacao = require('./motor/criacao');
 const gitOps = require('./motor/git');
+const anexos = require('./motor/anexos');
 
 const controlesConversa = new Map(); // conversa → AbortController
 let controleAssistente = null;
@@ -381,16 +382,17 @@ const acoes = {
     conversas.salvar(projeto, c);
     return c;
   },
-  'conversa:enviar': async (_e, projeto, id, texto) => {
+  'conversa:enviar': async (_e, projeto, id, texto, imagens = []) => {
     const controle = new AbortController();
     controlesConversa.set(id, controle);
     try {
-      return await conversas.enviar({ projeto, id, texto, comandos: lerConfig().comandos, sinal: controle.signal, aoEvento: (ev) => enviar({ tipo: 'conversa', ev }) });
+      return await conversas.enviar({ projeto, id, texto, anexos: imagens, comandos: lerConfig().comandos, sinal: controle.signal, aoEvento: (ev) => enviar({ tipo: 'conversa', ev }) });
     } finally {
       controlesConversa.delete(id);
     }
   },
   'conversa:parar': (_e, id) => controlesConversa.get(id)?.abort(),
+  'anexo:ler': (_e, projeto, rel) => anexos.dataUrl(projeto, rel),
   'conversa:excluir': (_e, projeto, id) => conversas.excluir(projeto, id),
   'execucao:excluirFio': (_e, projeto, fio) => excluirFio(projeto, fio, new Set([...execucoes.keys()])),
 
@@ -495,6 +497,7 @@ const acoes = {
       agente: opcoes.agente || null,
       fio: opcoes.fio || null,
       somenteLeitura: !!opcoes.somenteLeitura,
+      anexos: anexos.guardar(projeto, opcoes.anexos),
       config: { comandos: lerConfig().comandos },
       trava: travas.get(projeto),
       perguntar: () => new Promise((resolve) => { item.responder = resolve; }),

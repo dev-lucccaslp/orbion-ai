@@ -208,14 +208,22 @@ function desenharChat() {
   campo.value = S.rascunhoPedido || '';
   return h('div', { class: 'chat' },
     h('div', { class: 'chat-mensagens', id: 'chat-mensagens' }),
-    h('form', { class: 'chat-compositor', onsubmit: (e) => { e.preventDefault(); enviarPedido(); } },
-      h('div', { class: 'sugestoes-compositor', id: 'sugestoes', hidden: true }),
-      campo,
-      h('div', { class: 'chat-linha' },
-        h('button', { type: 'button', class: 'chip-time', id: 'chip-time', title: 'Qual time (e qual agente) recebe o pedido', onclick: (e) => escolherDestino(e.currentTarget) }),
-        h('button', { type: 'button', class: 'chip-validar', id: 'chip-validar', title: 'Só validar: o time lê e consulta, mas ninguém altera nada (/validar)', onclick: () => alternarSoValidar() }, ic('eye'), 'Só validar'),
-        h('span', { class: 'dica', id: 'chat-dica' }),
-        h('button', { type: 'submit', class: 'bt bt-principal', id: 'bt-enviar', title: 'Enviar (Enter)' }, ic('send'), 'Enviar'))));
+    compositorPedido(campo));
+}
+
+function compositorPedido(campo) {
+  const form = h('form', { class: 'chat-compositor', onsubmit: (e) => { e.preventDefault(); enviarPedido(); } },
+    h('div', { class: 'sugestoes-compositor', id: 'sugestoes', hidden: true }),
+    caixaAnexos('pedido'),
+    campo,
+    h('div', { class: 'chat-linha' },
+      h('button', { type: 'button', class: 'chip-time', id: 'chip-time', title: 'Qual time (e qual agente) recebe o pedido', onclick: (e) => escolherDestino(e.currentTarget) }),
+      h('button', { type: 'button', class: 'chip-validar', id: 'chip-validar', title: 'Só validar: o time lê e consulta, mas ninguém altera nada (/validar)', onclick: () => alternarSoValidar() }, ic('eye'), 'Só validar'),
+      botaoAnexar('pedido'),
+      h('span', { class: 'dica', id: 'chat-dica' }),
+      h('button', { type: 'submit', class: 'bt bt-principal', id: 'bt-enviar', title: 'Enviar (Enter)' }, ic('send'), 'Enviar')));
+  ligarAnexos('pedido', campo, form);
+  return form;
 }
 
 /** Liga ou desliga o "Só validar" (fica ligado até a pessoa desligar, como o modo de plano do Claude Code). */
@@ -617,6 +625,7 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
   const saida = [];
 
   saida.push(h('div', { class: 'msg msg-pessoa' },
+    imagensDaMensagem(e.anexos),
     h('div', { class: 'msg-balao' }, e.pedido),
     h('div', { class: 'msg-meta' }, h('i', { class: 'bolinha', cor: e.timeCor }), e.timeNome, ' · ', data(e.criadaEm),
       !vivo ? h('button', { class: 'bt-texto', onclick: () => { $('#pedido').value = e.pedido; S.rascunhoPedido = e.pedido; $('#pedido').focus(); } }, 'repetir') : null)));
@@ -924,16 +933,18 @@ async function enviarPedido() {
     else definirDestino(alvo.t.id, alvo.a.id);
     campo.value = m[3];
   }
-  const pedido = campo.value.trim();
+  const imagens = anexosParaEnviar('pedido');
+  const pedido = campo.value.trim() || (imagens.length ? 'Veja a imagem anexada.' : '');
   if (!pedido) return;
   fecharSugestoes();
   const { t, a } = destino();
   let estado;
   try {
-    estado = await api('execucao:iniciar', S.projeto.caminho, t.id, pedido, { agente: a?.id || null, fio: S.fio, somenteLeitura: !!S.soValidar });
+    estado = await api('execucao:iniciar', S.projeto.caminho, t.id, pedido, { agente: a?.id || null, fio: S.fio, somenteLeitura: !!S.soValidar, anexos: imagens });
   } catch {
-    return;
+    return; // as imagens ficam no compositor para tentar de novo
   }
+  limparAnexos('pedido');
   const v = garantirVivo({ execucao: estado.id, projeto: S.projeto.caminho });
   v.estado = v.estado || estado;
   S.fio = estado.fio;

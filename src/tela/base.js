@@ -216,3 +216,110 @@ function pontosAgentes(lista, max = 3) {
   return h('span', { class: 'pontos', title: `Mexido por ${lista.map((x) => x.nome).join(', ')}` },
     lista.slice(0, max).map((x) => h('i', { cor: x.cor })));
 }
+
+/* ---------- imagens nos chats: colar (Ctrl+V), arrastar ou escolher ---------- */
+
+const ANEXOS = new Map(); // compositor ('pedido', 'conversa') → [{ nome, tipo, url }]
+const TIPOS_IMAGEM = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+
+const lerComoUrl = (arquivo) => new Promise((ok, erro) => {
+  const r = new FileReader();
+  r.onload = () => ok(r.result);
+  r.onerror = () => erro(r.error);
+  r.readAsDataURL(arquivo);
+});
+
+async function anexarImagens(chave, arquivos) {
+  const lista = ANEXOS.get(chave) || [];
+  for (const f of arquivos) {
+    if (!TIPOS_IMAGEM.includes(f.type)) { aviso(`${f.name || 'Esse arquivo'} não é imagem (PNG, JPG, GIF ou WebP).`, 'info'); continue; }
+    if (f.size > 10 * 1024 * 1024) { aviso(`${f.name || 'A imagem'} passa de 10 MB.`, 'info'); continue; }
+    if (lista.length >= 8) { aviso('No máximo 8 imagens por mensagem.', 'info'); break; }
+    // Print colado vem sempre como "image.png": dá um nome que diga a ordem.
+    const nome = f.name && f.name !== 'image.png' ? f.name : `imagem-${lista.length + 1}.${f.type.split('/')[1].replace('jpeg', 'jpg')}`;
+    lista.push({ nome, tipo: f.type, url: await lerComoUrl(f) });
+  }
+  ANEXOS.set(chave, lista);
+  desenharAnexos(chave);
+}
+
+/** Liga colar no campo e arrastar na área em volta dele (o compositor inteiro). */
+function ligarAnexos(chave, campo, area) {
+  campo.addEventListener('paste', (e) => {
+    const imagens = [...(e.clipboardData?.items || [])].filter((i) => i.kind === 'file' && i.type.startsWith('image/')).map((i) => i.getAsFile()).filter(Boolean);
+    if (!imagens.length) return; // texto cola normal
+    e.preventDefault();
+    anexarImagens(chave, imagens);
+  });
+  const temArquivo = (e) => [...(e.dataTransfer?.types || [])].includes('Files');
+  area.addEventListener('dragover', (e) => { if (!temArquivo(e)) return; e.preventDefault(); area.classList.add('soltando'); });
+  area.addEventListener('dragleave', (e) => { if (!area.contains(e.relatedTarget)) area.classList.remove('soltando'); });
+  area.addEventListener('drop', (e) => {
+    area.classList.remove('soltando');
+    if (!temArquivo(e)) return;
+    e.preventDefault();
+    anexarImagens(chave, [...e.dataTransfer.files]);
+  });
+}
+
+function desenharAnexos(chave) {
+  const box = document.getElementById(`anexos-${chave}`);
+  if (!box) return;
+  const lista = ANEXOS.get(chave) || [];
+  box.hidden = !lista.length;
+  box.replaceChildren(...lista.map((a) => h('div', { class: 'anexo', title: a.nome },
+    h('img', { src: a.url, alt: a.nome, onclick: () => ampliarImagem(a.url, a.nome) }),
+    h('button', { type: 'button', class: 'anexo-tirar', title: 'Tirar a imagem', onclick: () => { ANEXOS.set(chave, (ANEXOS.get(chave) || []).filter((x) => x !== a)); desenharAnexos(chave); } }, ic('close')))));
+}
+
+function caixaAnexos(chave) {
+  const box = h('div', { class: 'anexos', id: `anexos-${chave}`, hidden: true });
+  requestAnimationFrame(() => desenharAnexos(chave));
+  return box;
+}
+
+function botaoAnexar(chave) {
+  const escolher = h('input', { type: 'file', accept: TIPOS_IMAGEM.join(','), multiple: true, hidden: true, onchange: (e) => { anexarImagens(chave, [...e.target.files]); e.target.value = ''; } });
+  return h('button', { type: 'button', class: 'bt-icone bt-anexar', title: 'Anexar imagem (ou cole com Ctrl+V, ou arraste para cá)', onclick: () => escolher.click() }, ic('file-media'), escolher);
+}
+
+const temAnexos = (chave) => !!(ANEXOS.get(chave) || []).length;
+const anexosLocais = (chave) => (ANEXOS.get(chave) || []).map((a) => ({ nome: a.nome, url: a.url }));
+/** As imagens no formato que o motor guarda ([{ nome, tipo, dados em base64 }]). */
+const anexosParaEnviar = (chave) => (ANEXOS.get(chave) || []).map((a) => ({ nome: a.nome, tipo: a.tipo, dados: a.url.slice(a.url.indexOf(',') + 1) }));
+function limparAnexos(chave) {
+  ANEXOS.delete(chave);
+  desenharAnexos(chave);
+}
+
+/** As imagens de uma mensagem: as recém-coladas têm a url; as guardadas são lidas do projeto uma vez. */
+const IMAGENS_GUARDADAS = new Map();
+function imagensDaMensagem(anexos) {
+  if (!anexos?.length) return null;
+  return h('div', { class: 'msg-imagens' }, anexos.map((a) => {
+    const img = h('img', { alt: a.nome || '', title: a.nome || '' });
+    const mostrar = (url) => { img.src = url; img.onclick = () => ampliarImagem(url, a.nome); };
+    if (a.url) mostrar(a.url);
+    else if (IMAGENS_GUARDADAS.has(a.rel)) mostrar(IMAGENS_GUARDADAS.get(a.rel));
+    else {
+      img.classList.add('carregando');
+      chamar('anexo:ler', S.projeto.caminho, a.rel)
+        .then((url) => { IMAGENS_GUARDADAS.set(a.rel, url); img.classList.remove('carregando'); mostrar(url); })
+        .catch(() => { img.classList.remove('carregando'); img.classList.add('sumiu'); img.alt = `${a.nome} (não está mais no projeto)`; });
+    }
+    return img;
+  }));
+}
+
+function ampliarImagem(url, nome) {
+  const fechar = () => { fundo.remove(); document.removeEventListener('keydown', tecla, true); };
+  const tecla = (e) => { if (e.key === 'Escape') { e.stopPropagation(); fechar(); } };
+  const fundo = h('div', { class: 'imagem-ampliada', onclick: fechar }, h('img', { src: url, alt: nome || '' }), nome ? h('span', {}, nome) : null);
+  document.addEventListener('keydown', tecla, true);
+  document.body.append(fundo);
+}
+
+// Um arquivo solto fora de uma área que aceita não pode abrir no lugar do app.
+for (const tipo of ['dragover', 'drop']) {
+  window.addEventListener(tipo, (e) => { if ([...(e.dataTransfer?.types || [])].includes('Files') && !e.defaultPrevented) e.preventDefault(); });
+}

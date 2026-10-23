@@ -10,6 +10,7 @@ const { randomUUID } = require('node:crypto');
 const { rodarApi } = require('./api');
 const { lerSkill } = require('./skills');
 const projetoCfg = require('./projeto');
+const anexosMod = require('./anexos');
 
 const pasta = (projeto) => path.join(projeto, '.orbion', 'conversas');
 const arquivoDe = (projeto, id) => path.join(pasta(projeto), `${path.basename(id)}.json`);
@@ -111,17 +112,20 @@ function falarClaude({ projeto, c, texto, comando, sinal, emitir }) {
 }
 
 /** Manda uma mensagem e devolve a conversa atualizada. */
-async function enviar({ projeto, id, texto, comandos, sinal, aoEvento = () => {} }) {
+async function enviar({ projeto, id, texto, anexos = [], comandos, sinal, aoEvento = () => {} }) {
   const c = ler(projeto, id);
-  if (!c.mensagens.length) c.titulo = texto.split('\n')[0].slice(0, 70);
-  c.mensagens.push({ papel: 'pessoa', texto, hora: Date.now() });
+  const guardados = anexosMod.guardar(projeto, anexos);
+  if (!c.mensagens.length) c.titulo = (texto || guardados[0]?.nome || 'Imagem').split('\n')[0].slice(0, 70);
+  c.mensagens.push({ papel: 'pessoa', texto, hora: Date.now(), ...(guardados.length ? { anexos: guardados } : {}) });
   salvar(projeto, c);
   const emitir = (e) => aoEvento({ ...e, conversa: id });
   let r;
   if (c.motor.startsWith('api:')) {
-    const historico = c.mensagens.slice(0, -1).map((m) => ({ role: m.papel === 'pessoa' ? 'user' : 'assistant', content: m.texto }));
+    // Nas mensagens antigas vai só o nome das imagens; a imagem em si, só na mensagem nova.
+    const historico = c.mensagens.slice(0, -1).map((m) => ({ role: m.papel === 'pessoa' ? 'user' : 'assistant', content: [m.texto, ...(m.anexos || []).map((a) => `[imagem: ${a.nome}]`)].filter(Boolean).join('\n') }));
     const x = await rodarApi({
-      provedor: c.motor.slice(4), modelo: c.modelo, cwd: projeto, prompt: texto, sistema: sistema(projeto, c.modo), historico, sinal,
+      provedor: c.motor.slice(4), modelo: c.modelo, cwd: projeto, prompt: texto || 'Veja a imagem.', sistema: sistema(projeto, c.modo), historico, sinal,
+      imagens: anexosMod.caminhos(projeto, guardados),
       aoEvento: (e) => {
         if (e.tipo === 'texto') emitir({ tipo: 'delta', texto: e.texto });
         else if (e.tipo === 'acao' || e.tipo === 'uso') emitir(e);
@@ -129,7 +133,8 @@ async function enviar({ projeto, id, texto, comandos, sinal, aoEvento = () => {}
     });
     r = { texto: x.texto, erro: x.erro };
   } else {
-    r = await falarClaude({ projeto, c, texto, comando: comandos.claude, sinal, emitir });
+    // O Claude abre as imagens pelo caminho, com a ferramenta Read.
+    r = await falarClaude({ projeto, c, texto: [texto, anexosMod.paraPrompt(projeto, guardados)].filter(Boolean).join('\n\n'), comando: comandos.claude, sinal, emitir });
   }
   c.mensagens.push({ papel: 'ia', texto: r.texto || '', erro: r.erro || null, hora: Date.now() });
   salvar(projeto, c);

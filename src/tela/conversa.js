@@ -51,15 +51,23 @@ function desenharConversa() {
       h('button', { class: 'bt-icone', title: 'Histórico de conversas', onclick: () => alternarHistorico('conversa') }, ic('history')),
       h('button', { class: 'bt-icone', title: 'Nova conversa', onclick: () => iniciarConversa(pref.modo) }, ic('add'))),
     h('div', { class: 'chat-mensagens', id: 'conversa-mensagens' }),
-    h('form', { class: 'chat-compositor', onsubmit: (e) => { e.preventDefault(); enviarConversa(); } },
-      campo,
-      h('div', { class: 'chat-linha' },
-        h('button', { type: 'button', class: 'bt-mini', title: 'Leva a última resposta para a Orquestra como pedido', onclick: virarPedido, disabled: !CV.atual?.mensagens.some((m) => m.papel === 'ia' && m.texto) }, ic('organization'), 'Virar pedido'),
-        h('span', { class: 'dica' }, CV.rodando ? 'Respondendo…' : ''),
-        CV.rodando
-          ? h('button', { type: 'button', class: 'bt bt-perigo', onclick: () => api('conversa:parar', CV.atual?.id) }, ic('debug-stop'), 'Parar')
-          : h('button', { type: 'submit', class: 'bt bt-principal' }, ic('send'), 'Enviar'))));
+    compositorConversa(campo));
   return corpo;
+}
+
+function compositorConversa(campo) {
+  const form = h('form', { class: 'chat-compositor', onsubmit: (e) => { e.preventDefault(); enviarConversa(); } },
+    caixaAnexos('conversa'),
+    campo,
+    h('div', { class: 'chat-linha' },
+      h('button', { type: 'button', class: 'bt-mini', title: 'Leva a última resposta para a Orquestra como pedido', onclick: virarPedido, disabled: !CV.atual?.mensagens.some((m) => m.papel === 'ia' && m.texto) }, ic('organization'), 'Virar pedido'),
+      botaoAnexar('conversa'),
+      h('span', { class: 'dica' }, CV.rodando ? 'Respondendo…' : ''),
+      CV.rodando
+        ? h('button', { type: 'button', class: 'bt bt-perigo', onclick: () => api('conversa:parar', CV.atual?.id) }, ic('debug-stop'), 'Parar')
+        : h('button', { type: 'submit', class: 'bt bt-principal' }, ic('send'), 'Enviar')));
+  ligarAnexos('conversa', campo, form);
+  return form;
 }
 
 function atualizarMensagensConversa() {
@@ -83,7 +91,7 @@ function atualizarMensagensConversa() {
       ].map(([m, t]) => h('button', { class: 'sugestao', onclick: () => { CV.modo = m; CV.atual = null; CV.rascunho = t; desenharDireita(); } }, ic('sparkle'), ` ${m} · ${t}`)))));
   }
   for (const m of msgs) {
-    if (m.papel === 'pessoa') itens.push(h('div', { class: 'msg msg-pessoa' }, h('div', { class: 'msg-balao' }, m.texto)));
+    if (m.papel === 'pessoa') itens.push(h('div', { class: 'msg msg-pessoa' }, imagensDaMensagem(m.anexos), m.texto ? h('div', { class: 'msg-balao' }, m.texto) : null));
     else itens.push(balaoIa(m.texto, m.erro));
   }
   if (CV.rodando) itens.push(balaoIa(CV.parcial, null, true));
@@ -106,10 +114,12 @@ const redesenharConversa = debounce(atualizarMensagensConversa, 60);
 
 async function enviarConversa() {
   const campo = $('#conversa-campo');
-  const texto = campo?.value.trim();
-  if (!texto || CV.rodando || !S.projeto) return;
+  const texto = campo?.value.trim() || '';
+  const imagens = anexosParaEnviar('conversa');
+  if ((!texto && !imagens.length) || CV.rodando || !S.projeto) return;
   if (!CV.atual) CV.atual = await api('conversa:criar', S.projeto.caminho, preferenciaConversa());
-  CV.atual.mensagens.push({ papel: 'pessoa', texto, hora: Date.now() });
+  CV.atual.mensagens.push({ papel: 'pessoa', texto, hora: Date.now(), anexos: anexosLocais('conversa') });
+  limparAnexos('conversa');
   CV.rodando = true;
   CV.parcial = '';
   CV.acoes = [];
@@ -117,7 +127,7 @@ async function enviarConversa() {
   CV.rascunho = '';
   desenharDireita();
   try {
-    CV.atual = await api('conversa:enviar', S.projeto.caminho, CV.atual.id, texto);
+    CV.atual = await api('conversa:enviar', S.projeto.caminho, CV.atual.id, texto, imagens);
   } catch {
     CV.atual.mensagens.push({ papel: 'ia', texto: CV.parcial, erro: 'A conversa parou com erro.' });
   }

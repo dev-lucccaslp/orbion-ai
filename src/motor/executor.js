@@ -48,13 +48,14 @@ function argsClaude({ modelo, esquema, editaArquivos, rodaComandos, ferramentas,
   return args;
 }
 
-function argsCodex({ cwd, modelo, editaArquivos, rodaComandos, esforco, argsExtras, arquivoEsquema, arquivoSaida }) {
+function argsCodex({ cwd, modelo, editaArquivos, rodaComandos, esforco, argsExtras, arquivoEsquema, arquivoSaida, imagens = [] }) {
   const args = [
     'exec', '--json', '--skip-git-repo-check', '--ephemeral', '-C', cwd,
     '-s', editaArquivos || rodaComandos ? 'workspace-write' : 'read-only',
     '--output-schema', arquivoEsquema, '-o', arquivoSaida,
   ];
   if (modelo) args.push('-m', modelo);
+  for (const img of imagens) args.push('-i', img);
   if (esforco) args.push('-c', `model_reasoning_effort="${['xhigh', 'max'].includes(esforco) ? 'high' : esforco}"`);
   args.push(...separarArgs(argsExtras));
   args.push('-'); // o prompt vai pela entrada padrão
@@ -192,13 +193,13 @@ function matarArvore(filho) {
 function rodarAgente({
   motor, comando, cwd, prompt, esquema, pasta, modelo,
   editaArquivos = false, rodaComandos = false, ferramentas = '', esforco = '', argsExtras = '', dirsExtras = [],
-  tempoMaxMs = 30 * 60 * 1000, sinal, aoEvento = () => {},
+  tempoMaxMs = 30 * 60 * 1000, sinal, aoEvento = () => {}, imagens = [],
 }) {
   if (motor.startsWith('api:')) {
     // Modelo por token: o laço de ferramentas é do próprio Orbion.
     return rodarApi({
       provedor: motor.slice(4), modelo, cwd, prompt, esquema, pasta, editaArquivos, rodaComandos, tempoMaxMs, sinal, aoEvento,
-      sistema: SISTEMA_API(cwd), leituraExtra: dirsExtras,
+      sistema: SISTEMA_API(cwd), leituraExtra: dirsExtras, imagens,
     }).then((r) => ({ saida: r.saida, erro: r.erro, cancelado: r.cancelado, custo: null }));
   }
   fs.mkdirSync(pasta, { recursive: true });
@@ -209,7 +210,7 @@ function rodarAgente({
   if (motor === 'codex') {
     const arquivoEsquema = path.join(pasta, 'esquema.json');
     fs.writeFileSync(arquivoEsquema, JSON.stringify(esquema));
-    args = argsCodex({ cwd, modelo, editaArquivos, rodaComandos, esforco, argsExtras, arquivoEsquema, arquivoSaida });
+    args = argsCodex({ cwd, modelo, editaArquivos, rodaComandos, esforco, argsExtras, arquivoEsquema, arquivoSaida, imagens });
   } else {
     args = argsClaude({ modelo, esquema, editaArquivos, rodaComandos, ferramentas, esforco, argsExtras, dirsExtras });
   }

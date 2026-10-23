@@ -19,6 +19,7 @@ const { acharSkills } = require('./skills');
 const { promptReceptor, promptTarefa } = require('./prompts');
 const { PLANO, PASSE } = require('./esquemas');
 const projetoCfg = require('./projeto');
+const { caminhos: anexosCaminhos } = require('./anexos');
 const times = require('./times');
 
 const pastaExecucoes = (projeto) => path.join(projeto, '.orbion', 'execucoes');
@@ -102,7 +103,7 @@ class Execucao extends EventEmitter {
    * @param {Trava} [op.trava] trava de escrita do projeto, dividida entre os pedidos abertos
    * @param {(p: object) => Promise<{acao: string, texto?: string}>} op.perguntar
    */
-  constructor({ projeto, time, pedido, agente = null, fio = null, somenteLeitura = false, config = {}, trava = new Trava(), perguntar }) {
+  constructor({ projeto, time, pedido, agente = null, fio = null, somenteLeitura = false, anexos = [], config = {}, trava = new Trava(), perguntar }) {
     super();
     this.projeto = projeto;
     this.time = time;
@@ -121,6 +122,7 @@ class Execucao extends EventEmitter {
       time, timeNome: info.nome || time, timeCor: info.cor || '#bd93f9', direto: agente,
       // tipo: pergunta | verificacao (ninguém altera nada) | mudanca. "Só validar" força verificação.
       tipo: somenteLeitura ? 'verificacao' : null, somenteLeitura,
+      anexos, // imagens da pessoa: [{ nome, tipo, rel }] em .orbion/anexos
       entendimento: '', tarefas: [], erro: null, gastoApi: 0, pergunta: null,
     };
     fs.mkdirSync(this.pasta, { recursive: true });
@@ -201,6 +203,7 @@ class Execucao extends EventEmitter {
       tempoMaxMs: (agente.tempoMax || this.config.tempoMaxMin) * 60 * 1000,
       sinal,
       aoEvento: (e) => this.log(tarefaId, agente, e),
+      imagens: anexosCaminhos(this.projeto, this.estado.anexos || []),
     });
     this.estado.gastoApi += r.custo || 0;
     return r;
@@ -268,7 +271,7 @@ class Execucao extends EventEmitter {
     const conversa = conversaDoFio(this.projeto, this.estado.fio, this.estado.id);
     const anteriores = conversa ? [] : listarExecucoes(this.projeto).filter((e) => e.id !== this.estado.id).slice(0, this.config.pedidosAnteriores);
     const memoria = this.config.memoria ? projetoCfg.lerMemoria(this.projeto) : '';
-    const prompt = promptReceptor({ receptor, time, pedido: this.estado.pedido, projeto: this.projeto, anteriores, conversa, somenteLeitura: this.estado.somenteLeitura, config: this.config, memoria });
+    const prompt = promptReceptor({ receptor, time, pedido: this.estado.pedido, projeto: this.projeto, anteriores, conversa, somenteLeitura: this.estado.somenteLeitura, anexos: this.estado.anexos || [], config: this.config, memoria });
     const r = await this.chamar(receptor, 'receptor', 1, prompt, PLANO, acharSkills(receptor.skills, this.projeto).achadas, this.controle.signal);
     if (r.cancelado) return this.mudar({ status: 'cancelada' });
     if (r.erro) throw new Error(`O Receptor não conseguiu montar o plano: ${r.erro}`);

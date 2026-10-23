@@ -182,9 +182,15 @@ function lerJson(texto) {
  * Roda um agente por API até ele entregar (com esquema) ou responder em texto (sem esquema).
  * @returns {Promise<{saida, texto, erro, cancelado, custo, mensagens}>}
  */
+function lerImagem(arquivo) {
+  const ext = path.extname(arquivo).toLowerCase();
+  const tipo = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp' }[ext] || 'image/png';
+  return { type: 'image_url', image_url: { url: `data:${tipo};base64,${fs.readFileSync(arquivo).toString('base64')}` } };
+}
+
 async function rodarApi({
   provedor, modelo, cwd, prompt, sistema, esquema, editaArquivos = false, rodaComandos = false,
-  historico = [], leituraExtra = [], tempoMaxMs = 30 * 60 * 1000, sinal, aoEvento = () => {}, pasta,
+  historico = [], leituraExtra = [], tempoMaxMs = 30 * 60 * 1000, sinal, aoEvento = () => {}, pasta, imagens = [],
 }) {
   const emitir = (e) => aoEvento({ ...e, hora: Date.now() });
   let p;
@@ -205,7 +211,8 @@ async function rodarApi({
   const mensagens = [
     { role: 'system', content: [sistema, esquema ? 'Quando terminar, chame a ferramenta "entregar" com o resultado. Não termine sem chamar.' : ''].filter(Boolean).join('\n\n') },
     ...historico,
-    { role: 'user', content: prompt },
+    // Com imagem, a mensagem vai em partes (texto + imagens), no formato de visão da OpenAI.
+    { role: 'user', content: imagens.length ? [{ type: 'text', text: prompt }, ...imagens.map(lerImagem)] : prompt },
   ];
   if (pasta) {
     fs.mkdirSync(pasta, { recursive: true });
@@ -254,6 +261,7 @@ async function rodarApi({
     let erro = e.message;
     if (controle.signal.aborted && !cancelado) erro = `Passou do tempo máximo de ${Math.round(tempoMaxMs / 60000)} min.`;
     if (e.status === 400 && /tool/i.test(e.message)) erro = `${e.message}. Esse modelo parece não aceitar ferramentas; escolha outro.`;
+    else if (e.status === 400 && imagens.length && /image|vision|multimodal/i.test(e.message)) erro = `${e.message}. Esse modelo parece não aceitar imagens; escolha um com visão.`;
     return { saida: null, erro: cancelado ? 'Cancelado.' : erro, cancelado, custo: null, mensagens };
   } finally {
     clearTimeout(timer);
