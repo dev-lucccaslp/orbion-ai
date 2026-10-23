@@ -44,6 +44,36 @@ function colorirCodigo(el, codigo, lingua) {
 
 const ehNumero = (c) => /^[\s\d.,:%+–—-]+$/.test(c) && /\d/.test(c);
 
+// Código comprido começa recolhido; os que a pessoa abriu ficam abertos quando a tela redesenha.
+const LINHAS_CODIGO_ABERTO = 12;
+const CODIGOS_ABERTOS = new Set();
+const chaveCodigo = (texto) => {
+  let n = 5381;
+  for (let i = 0; i < texto.length; i++) n = ((n * 33) ^ texto.charCodeAt(i)) >>> 0;
+  return `${texto.length}:${n}`;
+};
+
+function blocoDeCodigo(lingua, fonte, nLinhas, copiar, pre) {
+  const grande = nLinhas > LINHAS_CODIGO_ABERTO || fonte.length > 1500;
+  const bloco = h('div', { class: `md-bloco${grande ? ' grande' : ''}` }, lingua ? h('span', { class: 'md-lingua' }, lingua) : null, copiar, pre);
+  if (!grande) return bloco;
+  const chave = chaveCodigo(fonte);
+  const botao = h('button', { class: 'md-expandir', type: 'button' });
+  const mostrar = (aberto) => {
+    bloco.classList.toggle('aberto', aberto);
+    botao.replaceChildren(ic(aberto ? 'chevron-up' : 'chevron-down'), aberto ? 'Recolher' : `Expandir (${nLinhas} linhas)`);
+  };
+  botao.addEventListener('click', () => {
+    const aberto = !CODIGOS_ABERTOS.has(chave);
+    if (aberto) CODIGOS_ABERTOS.add(chave);
+    else CODIGOS_ABERTOS.delete(chave);
+    mostrar(aberto);
+  });
+  mostrar(CODIGOS_ABERTOS.has(chave));
+  bloco.append(botao);
+  return bloco;
+}
+
 function markdown(texto) {
   const raiz = h('div', { class: 'md' });
   const linhas = String(texto || '').replace(/\r\n/g, '\n').split('\n');
@@ -62,11 +92,12 @@ function markdown(texto) {
       i++;
       while (i < linhas.length && !/^```\s*$/.test(linhas[i])) codigo.push(linhas[i++]);
       i++;
-      const codeEl = h('code', {}, codigo.join('\n'));
+      const fonte = codigo.join('\n');
+      const codeEl = h('code', {}, fonte);
       const pre = h('pre', { class: 'md-codigo' }, codeEl);
-      colorirCodigo(codeEl, codigo.join('\n'), m[1]);
-      const copiar = h('button', { class: 'md-copiar', title: 'Copiar', onclick: () => { navigator.clipboard.writeText(codigo.join('\n')); aviso('Copiado.', 'ok'); } }, ic('copy'));
-      raiz.append(h('div', { class: 'md-bloco' }, m[1] ? h('span', { class: 'md-lingua' }, m[1]) : null, copiar, pre));
+      colorirCodigo(codeEl, fonte, m[1]);
+      const copiar = h('button', { class: 'md-copiar', title: 'Copiar', onclick: () => { navigator.clipboard.writeText(fonte); aviso('Copiado.', 'ok'); } }, ic('copy'));
+      raiz.append(blocoDeCodigo(m[1], fonte, codigo.length, copiar, pre));
       continue;
     }
     if (!l.trim()) { fecharParagrafo(); i++; continue; }

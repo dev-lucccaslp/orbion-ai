@@ -462,3 +462,11 @@ details.msg-memoria li { margin: 3px 0; }
 .md-tabela td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--fonte-mono); font-size: 11.5px; }
 .md-codigo { tab-size: 2; }
 .md-tabela th.num { text-align: right; }
+
+/* ---------- código comprido recolhido ---------- */
+
+.md-bloco.grande:not(.aberto) .md-codigo { max-height: 15em; overflow: hidden; }
+.md-bloco.grande:not(.aberto)::after { content: ""; position: absolute; left: 0; right: 0; bottom: 25px; height: 3.5em; background: linear-gradient(transparent, var(--fundo)); pointer-events: none; }
+.md-expandir { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 25px; padding: 0; border: 0; border-top: 1px solid var(--borda); background: color-mix(in srgb, var(--texto) 4%, var(--fundo)); color: var(--link, var(--foco)); font-size: 11.5px; cursor: pointer; }
+.md-expandir:hover { background: var(--hover); }
+.md-expandir .codicon { font-size: 13px; }
