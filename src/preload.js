@@ -12,7 +12,7 @@ const CANAIS = [
   'git:status', 'git:original', 'git:indice', 'git:preparar', 'git:despreparar', 'git:descartar', 'git:commit', 'git:ramos',
   'git:trocarRamo', 'git:criarRamo', 'git:puxar', 'git:enviar', 'git:sincronizar', 'git:buscar', 'git:iniciar', 'git:publicar', 'git:mensagem',
   'temas:listar', 'temas:cores', 'temas:icones', 'extensoes:abrirPasta',
-  'loja:buscar', 'loja:detalhes', 'imagens:modelos', 'imagens:gerar', 'imagens:parar', 'imagens:salvar', 'loja:instalar', 'loja:instaladas', 'loja:remover',
+  'app:versao', 'atualizacao:verificar', 'atualizacao:notas', 'atualizacao:cancelar', 'atualizacao:instalar', 'loja:buscar', 'loja:detalhes', 'imagens:modelos', 'imagens:gerar', 'imagens:parar', 'imagens:salvar', 'loja:instalar', 'loja:instaladas', 'loja:remover',
   'terminal:shells', 'terminal:criar', 'terminal:fechar',
   'janela:titulo', 'janela:devtools', 'janela:recarregar', 'janela:sair',
   'execucao:iniciar', 'execucao:responder', 'execucao:cancelar', 'execucao:intervir', 'execucao:ler', 'execucao:vivas',

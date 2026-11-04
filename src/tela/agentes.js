@@ -223,7 +223,8 @@ function resumoDosMotores() {
   if (!S.situacaoMotores) return 'Vendo quais modelos de IA existem neste PC…';
   const cli = ['claude', 'codex'].map((m) => `${nomeDoMotor(m)} ${traduzir(motorPronto(m) ? 'pronto' : situacaoDoMotor(m))}`);
   const api_ = (S.provedores || []).filter((p) => p.temChave || p.semChave).length;
-  return `Neste PC: ${[...cli, api_ ? `${api_} provedor(es) por API` : null].filter(Boolean).join(' · ')}. Cada agente já vem com um que funciona aqui; clique no modelo do card para trocar.`;
+  const porApi = api_ ? traduzir(api_ === 1 ? '1 provedor por API' : `${api_} provedores por API`) : null;
+  return `Neste PC: ${[...cli, porApi].filter(Boolean).join(' · ')}. Cada agente já vem com um que funciona aqui; clique no modelo do card para trocar.`;
 }
 
 function copiarDeOutroProjeto(criar) {

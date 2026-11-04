@@ -54,6 +54,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # o histórico inteiro, para as notas saírem dos commits desde a versão anterior
       - uses: actions/download-artifact@v4
         with:
           path: instaladores
@@ -66,8 +68,14 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           case "$TAG" in v*) ;; *) TAG="$VERSAO" ;; esac
           ls -la instaladores
+          # O que mudou: cada commit desde a versão anterior, com o título e a lista do corpo da mensagem.
+          # É essa nota que o Orbion mostra depois de atualizar.
+          ANTERIOR="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)"
+          git log --no-merges --format='### %s%n%n%b' "${ANTERIOR:+$ANTERIOR..}HEAD" | grep -v '^Co-Authored-By:' > notas.md
+          if [ -n "$ANTERIOR" ]; then printf '\n[Tudo o que mudou desde %s](https://github.com/%s/compare/%s...%s)\n' "$ANTERIOR" "$GITHUB_REPOSITORY" "$ANTERIOR" "$TAG" >> notas.md; fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" instaladores/* --clobber
+            gh release edit "$TAG" --notes-file notas.md
           else
-            gh release create "$TAG" instaladores/* --title "Orbion.ai $TAG" --generate-notes --target "$GITHUB_SHA"
+            gh release create "$TAG" instaladores/* --title "Orbion.ai $TAG" --notes-file notas.md --target "$GITHUB_SHA"
           fi

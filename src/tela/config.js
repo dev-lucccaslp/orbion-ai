@@ -72,6 +72,8 @@ PAGINAS.config = {
           campo('Fonte do editor', null, texto(g.fonte, (v) => salvarGeral({ fonte: v }), { class: 'mono' })),
           campo('Tamanho da fonte', null, texto(g.tamanhoFonte, (v) => salvarGeral({ tamanhoFonte: v }), { type: 'number', min: 9, max: 32 })))),
 
+      secaoDeAtualizacoes(),
+
       h('section', { class: 'grupo' },
         h('h2', {}, 'Motores'),
         h('p', { class: 'campo-dica' }, 'O Orbion.ai chama estes programas, que já estão logados no teu PC. Não precisa de chave de API.'),

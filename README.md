@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version 0.1.0" src="https://img.shields.io/badge/version-0.1.0-4C6BFF">
+  <img alt="Latest version" src="https://img.shields.io/github/v/release/dev-lucccaslp/orbion-ai?label=version&color=4C6BFF">
   <img alt="Windows, macOS and Linux" src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-desktop-1d1d1f">
   <img alt="English, Português, Español" src="https://img.shields.io/badge/languages-en%20%C2%B7%20pt%20%C2%B7%20es-2ea44f">
   <img alt="Electron 44" src="https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white">
@@ -31,7 +31,7 @@
       <img src="docs/imagens/windows.svg" height="64" alt="Windows"><br>
       <b>Windows</b><br>
       Windows 10 and 11 · 64-bit<br>
-      <sub>version 0.1.0</sub><br><br>
+      <img alt="Latest version" src="https://img.shields.io/github/v/release/dev-lucccaslp/orbion-ai?label=&color=4C6BFF&style=flat-square"><br><br>
       <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-windows-x64.exe"><b>Download the installer</b></a><br>
       <sub><code>.exe</code></sub>
     </td>
@@ -39,7 +39,7 @@
       <img src="docs/imagens/macos.svg" height="64" alt="macOS"><br>
       <b>macOS</b><br>
       Apple Silicon (M1 or newer)<br>
-      <sub>version 0.1.0</sub><br><br>
+      <img alt="Latest version" src="https://img.shields.io/github/v/release/dev-lucccaslp/orbion-ai?label=&color=4C6BFF&style=flat-square"><br><br>
       <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-mac-arm64.dmg"><b>Download the app</b></a><br>
       <sub><code>.dmg</code></sub>
     </td>
@@ -47,7 +47,7 @@
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons/linux/linux-original.svg" height="64" alt="Linux"><br>
       <b>Linux</b><br>
       Ubuntu, Debian, Fedora and others · 64-bit<br>
-      <sub>version 0.1.0</sub><br><br>
+      <img alt="Latest version" src="https://img.shields.io/github/v/release/dev-lucccaslp/orbion-ai?label=&color=4C6BFF&style=flat-square"><br><br>
       <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.AppImage"><b>Download the AppImage</b></a><br>
       <sub>or the <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.deb"><code>.deb</code></a> for Ubuntu and Debian</sub>
     </td>
@@ -114,8 +114,8 @@ The first time, run `npm install` in this folder.
 ### Publish a version
 
 - `npm run dist` builds, in `dist/`, the installer for the system you are on.
-- For all three systems at once: bump `version` in `package.json` and push a tag with the same number (`git tag v0.1.1` and `git push origin v0.1.1`). GitHub Actions ([release.yml](.github/workflows/release.yml)) builds the installers on Windows, macOS and Linux and publishes them in Releases. The files always have the same name, so the **Download** links point to the new version on their own; just update the version number at the top of this README.
-- While the repository is private, only people with access to it can download.
+- For all three systems at once: bump `version` in `package.json` and push a tag with the same number (`git tag v0.1.1` and `git push origin v0.1.1`). GitHub Actions ([release.yml](.github/workflows/release.yml)) builds the installers on Windows, macOS and Linux and publishes them in Releases. The files always have the same name, so the **Download** links point to the new version on their own. The release notes are built from the commit messages since the previous version, and they are what Orbion shows after updating.
+- The version badges at the top of this README read the latest release on their own.
 
 ## The window
 
@@ -162,6 +162,13 @@ The first time, run `npm install` in this folder.
   - Skills, the prompt template and the instructions.
   - You can duplicate the agent, copy it to another team, see the assembled prompt or open its `.md` file.
 - **Ask**: in the Orchestra, pick the team in the button next to Send. While one team works, you can send another request to another team.
+
+## Updates
+
+- When a new version is out on GitHub, a notification offers it: **Update**, **What's new** or **Not now**. Orbion never updates on its own. The offer also stays in **Settings → Updates** and in the status bar.
+- **Update** downloads the installer for your system, installs it and restarts. On Windows and with the AppImage on Linux it is all automatic; with the `.dmg` on macOS and the `.deb` on Linux, the installer opens for you to finish.
+- After restarting, Orbion shows **what changed** in the new version. You can see it again from Help → What's new in this version.
+- Orbion checks when it opens and every few hours. Turn it off in Settings → Updates, or check by hand in Help → Check for updates.
 
 ## Accounts and models
 

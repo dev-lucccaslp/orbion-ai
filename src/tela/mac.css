@@ -479,3 +479,40 @@ kbd { border-radius: 5px; border-bottom-width: 1px; background: var(--realce); b
 .img-vazio > .codicon { font-size: 44px; opacity: 0.5; }
 .img-vazio h3 { color: var(--texto); font-size: 15px; }
 .img-vazio p { max-width: 42ch; margin: 0; }
+
+/* ---------- atualizações ---------- */
+.oferta-atualizacao {
+  position: fixed; right: 16px; top: 50px; z-index: 850; width: 360px; padding: 14px 16px 14px;
+  border-radius: 14px; background: var(--vidro); -webkit-backdrop-filter: blur(28px) saturate(1.6); backdrop-filter: blur(28px) saturate(1.6);
+  border: 0.5px solid color-mix(in srgb, var(--texto) 16%, transparent); box-shadow: var(--sombra-flutuante);
+  animation: entra-mac 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.oferta-atualizacao p { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; }
+.atu-topo { display: flex; align-items: center; gap: 10px; }
+.atu-titulo { flex: 1; display: flex; flex-direction: column; }
+.atu-titulo strong { font-size: 13.5px; }
+.atu-marca svg { width: 34px; height: 34px; display: block; color: var(--texto); }
+.atu-marca .marca-rastro { fill: currentColor; }
+.atu-marca .marca-satelite { fill: #4c6bff; }
+.atu-marca.grande svg { width: 48px; height: 48px; }
+.atu-resumo { margin: 8px 0 0; padding-left: 18px; font-size: 12px; color: color-mix(in srgb, var(--texto) 82%, transparent); }
+.atu-resumo li { margin: 2px 0; }
+.atu-acoes { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.atu-depois { color: var(--mudo); font-size: 12.5px; }
+.atu-barra { height: 6px; margin-top: 10px; border-radius: 3px; background: var(--realce-forte); overflow: hidden; }
+.atu-barra i { display: block; height: 100%; border-radius: 3px; background: var(--botao); transition: width 0.25s; }
+.status-atualizacao { background: color-mix(in srgb, var(--botao) 85%, transparent) !important; color: var(--botao-texto) !important; font-weight: 600; }
+.atu-linha { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.atu-cartao { border-radius: 12px; border: 1px solid var(--linha-fina); background: var(--realce); padding: 12px 14px; }
+.atu-cartao-topo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.atu-notas { margin-top: 10px; max-height: 260px; overflow-y: auto; font-size: 12.5px; }
+.novidades-camada { position: fixed; inset: 0; z-index: 880; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); animation: entra-tour 0.2s; }
+.novidades-cartao {
+  width: min(620px, calc(100vw - 40px)); max-height: min(720px, calc(100vh - 80px)); display: flex; flex-direction: column;
+  padding: 22px 24px 18px; border-radius: 18px; background: var(--vidro); -webkit-backdrop-filter: blur(30px) saturate(1.6); backdrop-filter: blur(30px) saturate(1.6);
+  border: 0.5px solid color-mix(in srgb, var(--texto) 18%, transparent); box-shadow: var(--sombra-flutuante);
+}
+.novidades-topo { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.novidades-topo h2 { font-size: 18px; font-family: var(--fonte-titulo); }
+.novidades-corpo { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; font-size: 13px; }
+.novidades-corpo h3 { font-size: 13.5px; margin: 12px 0 4px; }

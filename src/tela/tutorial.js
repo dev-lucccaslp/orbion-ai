@@ -39,9 +39,24 @@ const PASSOS_DO_TOUR = [
     texto: 'Cada funcionalidade vira um fluxo de blocos (tela → rota → banco). Enquanto o time trabalha, o bloco de cada agente acende; depois, um clique no bloco pede mudança só nele.',
   },
   {
+    alvo: '#atividades [data-vista="skills"]',
+    titulo: 'Skills',
+    texto: 'Instruções que ensinam um jeito de trabalhar: um passo a passo, um checklist, as regras do time. Cada skill tem uma página; os agentes seguem e a Conversa usa como modo.',
+  },
+  {
+    alvo: '#atividades [data-vista="extensoes"]',
+    titulo: 'Temas e extensões',
+    texto: 'Instale temas do Open VSX e clique numa extensão para ver a página dela. Trocar o tema é nas Configurações.',
+  },
+  {
     alvo: '.direita-aba[data-direita="voo"]',
     titulo: 'O Voo',
     texto: 'O que cada IA está fazendo agora, quem está escrevendo no projeto e quantos tokens já foram.',
+  },
+  {
+    alvo: () => document.querySelectorAll('#menus .menu-topo')[6] || null,
+    titulo: 'Gerar imagens',
+    texto: 'No menu Time: ícones, banners e ilustrações, que vão para uma pasta do projeto ou para um pedido ao time. Usa um provedor por API, como a OpenAI ou o Gemini.',
   },
   {
     alvo: '#bt-contas',
@@ -51,7 +66,12 @@ const PASSOS_DO_TOUR = [
   {
     alvo: '#bt-config',
     titulo: 'Configurações',
-    texto: 'Idioma, tema, fonte e como o time trabalha neste projeto: aprovação do plano, memória e limites.',
+    texto: 'Idioma, tema, fonte, atualizações e como o time trabalha neste projeto: aprovação do plano, memória e limites.',
+  },
+  {
+    alvo: () => document.querySelectorAll('#menus .menu-topo')[7] || null,
+    titulo: 'Sempre em dia',
+    texto: 'Quando sair uma versão nova, uma notificação oferece. Tu decide quando atualizar; depois, o Orbion mostra o que mudou. Também em Ajuda → Procurar atualizações.',
   },
   {
     titulo: 'Pronto!',

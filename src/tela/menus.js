@@ -121,6 +121,8 @@ function itensDosMenus() {
     ]],
     ['Ajuda', [
       ['Tour do Orbion', 'mortar-board', iniciarTour],
+      ['Procurar atualizações…', 'arrow-circle-up', () => verificarAtualizacao(true)],
+      ['O que mudou nesta versão', 'history', () => mostrarNovidades()],
       ['Descobrir skills e mods', 'compass', abrirDescobrir],
       ['Contas e modelos', 'account', abrirContas],
       ['Atalhos de teclado', 'keyboard', abrirConfig],

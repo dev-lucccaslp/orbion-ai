@@ -74,6 +74,8 @@ function desenharStatus() {
   if (TERMINAIS.length) itens.push(h('button', { class: 'status-item', title: 'Terminais', onclick: () => abrirPainelEm('terminal') }, ic('terminal'), String(TERMINAIS.length)));
 
   const direita = [];
+  const atualizar = itemDeAtualizacaoNaBarra();
+  if (atualizar) direita.push(atualizar);
   const a = abaAtiva();
   if ((a?.tipo === 'arquivo' || a?.tipo === 'previa') && S.cursor) {
     const m = a.modelo;
@@ -385,6 +387,7 @@ aoEvento((ev) => {
   if (ev.tipo === 'conversa') return eventoConversa(ev.ev);
   if (ev.tipo === 'assistente') return eventoAssistente(ev.ev);
   if (ev.tipo === 'mapa') return eventoMapa(ev);
+  if (ev.tipo === 'atualizacao') return eventoAtualizacao(ev);
   eventoParaFluxo(ev);
   return tratarEventoExecucao(ev);
 });
@@ -427,4 +430,5 @@ window.addEventListener('beforeunload', (e) => {
   if (primeiro) await abrirProjeto(primeiro);
   document.body.classList.add('pronto');
   tourDaPrimeiraVez();
+  iniciarAtualizacoes();
 })();

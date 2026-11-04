@@ -1,7 +1,7 @@
 {
   "name": "orbion-ai",
   "productName": "Orbion.ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "App desktop que orquestra agentes de IA (Claude Code, Codex e modelos por API) trabalhando juntos num projeto local.",
   "main": "src/main.js",
   "private": true,
@@ -58,7 +58,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "shortcutName": "Orbion.ai",
-      "uninstallDisplayName": "Orbion.ai"
+      "uninstallDisplayName": "Orbion.ai",
+      "runAfterFinish": true
     },
     "mac": {
       "target": [
@@ -92,7 +93,7 @@
       "category": "Development",
       "maintainer": "Lucas Lessa",
       "synopsis": "Times de IAs trabalhando juntos no teu projeto",
-      "artifactName": "Orbion.ai-linux-${arch}.${ext}"
+      "artifactName": "Orbion.ai-linux-x64.${ext}"
     }
   }
 }

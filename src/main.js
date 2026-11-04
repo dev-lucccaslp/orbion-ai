@@ -27,6 +27,8 @@ const fluxosMod = require('./motor/fluxos');
 const idiomaMod = require('./motor/idioma');
 let controleMapa = null;
 const imagens = require('./motor/imagens');
+const atualizacao = require('./motor/atualizacao');
+let controleAtualizacao = null;
 let controleImagem = null;
 
 const controlesConversa = new Map(); // conversa → AbortController
@@ -153,6 +155,7 @@ function lerConfig() {
     comandos: { ...CONFIG_PADRAO.comandos },
     projetos: [],
     tema: 'orbion.noite',
+    avisarAtualizacoes: true, // avisa quando sai uma versão nova (nunca atualiza sozinho)
     idioma: idiomaMod.doSistema(app.isReady() ? app.getLocale() : ''), // pt, en ou es; começa pelo do sistema
     temaIcones: null,
     fonte: "'Cascadia Code', Consolas, monospace",
@@ -613,6 +616,33 @@ const acoes = {
 
   'abrir:pasta': (_e, alvo) => shell.openPath(alvo),
   'app:notificar': (_e, titulo, texto) => notificar(titulo, texto),
+  'app:versao': () => app.getVersion(),
+  'atualizacao:verificar': () => atualizacao.verificar(app.getVersion()),
+  'atualizacao:notas': (_e, versao) => atualizacao.notasDaVersao(versao),
+  'atualizacao:cancelar': () => controleAtualizacao?.abort(),
+  // A pessoa aceitou: baixa, guarda as notas para mostrar depois de reiniciar, instala e fecha.
+  'atualizacao:instalar': async (_e, info) => {
+    if (!info?.arquivo) throw new Error('Esta versão não tem instalador para o teu sistema. Baixe pela página do GitHub.');
+    controleAtualizacao?.abort();
+    controleAtualizacao = new AbortController();
+    try {
+      const arquivo = await atualizacao.baixar(info.arquivo, {
+        sinal: controleAtualizacao.signal,
+        aoProgresso: (p) => enviar({ tipo: 'atualizacao', fase: 'baixando', ...p }),
+      });
+      salvarConfig({ ...lerConfig(), notasPendentes: { versao: info.versao, titulo: info.titulo, notas: info.notas, pagina: info.pagina } });
+      if (!app.isPackaged) {
+        enviar({ tipo: 'atualizacao', fase: 'dev', arquivo });
+        return { modo: 'dev', arquivo };
+      }
+      const fechar = atualizacao.instalar(arquivo, { abrirComSistema: (f) => shell.openPath(f) });
+      enviar({ tipo: 'atualizacao', fase: fechar ? 'reiniciando' : 'manual', arquivo });
+      if (fechar) setTimeout(() => app.quit(), 1500);
+      return { modo: fechar ? 'reiniciando' : 'manual', arquivo };
+    } finally {
+      controleAtualizacao = null;
+    }
+  },
   'previa:endereco': (_e, projeto, alvo) => enderecoDaPrevia(projeto, alvo),
   'previa:abrirFora': (_e, url) => { if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i.test(url)) shell.openExternal(url); },
   // A foto de um pedaço da janela (a prévia com os pontos marcados), em PNG.

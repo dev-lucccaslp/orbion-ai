@@ -16,7 +16,7 @@ const NAO_TRADUZ = [
 ].join(', ');
 const ATRIBUTOS_TRADUZIDOS = ['title', 'placeholder', 'aria-label'];
 // As ações dos agentes ("Lendo src/app.js") ficam em áreas de código: lá, só o verbo do começo muda.
-const SO_O_VERBO = '.mono, .log, .ev-texto';
+const SO_O_VERBO = '.mono, .log, .ev-texto, .exec-texto';
 const NUNCA = '.monaco-editor, .xterm, .md, pre, code, textarea';
 const VERBOS = {
   en: { Lendo: 'Reading', Criando: 'Creating', Editando: 'Editing', Procurando: 'Finding', Buscando: 'Searching', Listando: 'Listing' },
@@ -68,7 +68,8 @@ function prepararIdioma(id) {
     if (fixo.length < 2) continue; // "{0}" sozinho não diz nada
     // "{0} pedidos" é contagem: só vale com número (senão "Meus pedidos" viraria "Meus requests").
     // O gerúndio ("{0} trabalhando") fica de fora: ali vem um nome.
-    const soNumero = fixo.split(/\s+/).filter(Boolean).length <= 1 && !/ndo$/.test(fixo); // "{0} pedidos", "{0} de {1}"
+    // Só quando começa pela parte que muda ("{0} pedidos", "{0} de {1}"); "Prévia: {0}" vale com qualquer coisa.
+    const soNumero = /^\{\d+\}/.test(pt) && fixo.split(/\s+/).filter(Boolean).length <= 1 && !/ndo$/.test(fixo);
     TRAD.padroes.push({ re: new RegExp(`^${corpo}$`), ordem, traducao, peso: fixo.length, soNumero });
   }
   TRAD.padroes.sort((a, b) => b.peso - a.peso);
@@ -135,7 +136,7 @@ function traduzirNo(no) {
     const pai = no.parentElement;
     if (!pai) return;
     if (!pai.closest(NAO_TRADUZ)) trocarTexto(no);
-    else if (pai.closest(SO_O_VERBO) && !pai.closest(NUNCA) && TRAD.postos.get(no) !== no.nodeValue) trocarVerbo(no);
+    if (pai.closest(SO_O_VERBO) && !pai.closest(NUNCA) && TRAD.postos.get(no) !== no.nodeValue) trocarVerbo(no);
     return;
   }
   if (no.nodeType !== 1) return;
