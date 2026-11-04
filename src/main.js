@@ -26,6 +26,8 @@ const anexos = require('./motor/anexos');
 const fluxosMod = require('./motor/fluxos');
 const idiomaMod = require('./motor/idioma');
 let controleMapa = null;
+const imagens = require('./motor/imagens');
+let controleImagem = null;
 
 const controlesConversa = new Map(); // conversa → AbortController
 let controleAssistente = null;
@@ -535,6 +537,19 @@ const acoes = {
     return shell.openPath(loja.pastaExtensoes());
   },
   'loja:buscar': (_e, texto) => loja.buscar(texto),
+  'loja:detalhes': (_e, namespace, nome) => loja.detalhes(namespace, nome),
+  'imagens:modelos': () => imagens.modelosDeImagem(),
+  'imagens:gerar': async (_e, pedido) => {
+    controleImagem?.abort();
+    controleImagem = new AbortController();
+    try {
+      return await imagens.gerar({ ...pedido, sinal: controleImagem.signal });
+    } finally {
+      controleImagem = null;
+    }
+  },
+  'imagens:parar': () => controleImagem?.abort(),
+  'imagens:salvar': (_e, projeto, rel, base64) => imagens.salvar(projeto, rel, base64),
   'loja:instalar': async (_e, namespace, nome) => ({ ...(await loja.instalar(namespace, nome)), temas: temas.listar() }),
   'loja:instaladas': () => loja.instaladas(),
   'loja:remover': async (_e, pasta) => {

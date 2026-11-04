@@ -62,6 +62,7 @@ function itensDosMenus() {
       ['Explorador', 'files', () => mudarVista('explorador'), 'Ctrl+Shift+E'],
       ['Times', 'organization', () => mudarVista('times'), 'Ctrl+Shift+T'],
       ['Mudanças', 'source-control', () => mudarVista('mudancas'), 'Ctrl+Shift+G'],
+      ['Skills', 'sparkle', () => mudarVista('skills')],
       ['Extensões', 'extensions', () => mudarVista('extensoes'), 'Ctrl+Shift+X'],
       '-',
       ['Orquestra', 'comment-discussion', () => abrirDireita('orquestra'), 'Ctrl+I'],
@@ -106,6 +107,7 @@ function itensDosMenus() {
       ['Conversar sobre o projeto', 'comment', () => iniciarConversa(''), 'Ctrl+L', p],
       ['Grill-me: questionar um plano', 'flame', () => iniciarConversa('grill-me'), null, p],
       ['Sugestões de melhoria', 'lightbulb', () => abrirMelhorias(), null, p],
+      ['Gerar imagem…', 'file-media', () => abrirGeradorDeImagens(), null, p],
       ['Mapear os fluxos do projeto', 'type-hierarchy-sub', () => { abrirFluxo(); mapearFluxos(); }, null, p && !FLX.mapeando],
       '-',
       ['Criar time…', 'organization', novoTime, null, p],
@@ -118,6 +120,7 @@ function itensDosMenus() {
       ['Parar todos os pedidos', 'debug-stop', pararTodos, null, vivosDoProjeto().length > 0],
     ]],
     ['Ajuda', [
+      ['Tour do Orbion', 'mortar-board', iniciarTour],
       ['Descobrir skills e mods', 'compass', abrirDescobrir],
       ['Contas e modelos', 'account', abrirContas],
       ['Atalhos de teclado', 'keyboard', abrirConfig],

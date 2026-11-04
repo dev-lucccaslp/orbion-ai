@@ -111,7 +111,7 @@ PAGINAS.config = {
 
 /* ---------- extensões: as instaladas e a loja do Open VSX ---------- */
 
-const LOJA = { campo: null, termo: '', resultados: null, buscando: false, instalando: new Set(), erro: null };
+const LOJA = { campo: null, termo: '', resultados: null, buscando: false, instalando: new Set(), erro: null, detalhes: new Map() };
 
 const buscarNaLoja = debounce(async () => {
   LOJA.buscando = true;
@@ -142,66 +142,4 @@ async function instalarDaLoja(x) {
 const ordemSkill = (x) => ['projeto', 'orbion-usuario', 'orbion'].indexOf(x.origem) + 1 || 9;
 const ORIGEM_SKILL = { orbion: 'Orbion', 'orbion-usuario': 'tua', projeto: 'projeto', claude: 'Claude Code', codex: 'Codex', agents: '.agents', plugin: 'plugin' };
 
-VISTAS.extensoes = {
-  titulo: 'Extensões',
-  acoes: () => [
-    ['refresh', 'Procurar de novo nas pastas', async () => { S.temas = await api('temas:listar'); S.skills = null; desenharLateral(); }],
-    ['folder-opened', 'Abrir a pasta de extensões do Orbion', () => api('extensoes:abrirPasta')],
-  ],
-  desenhar() {
-    if (!S.skills) api('skills:listar', S.projeto?.caminho || null).then((x) => { S.skills = x; if (S.vista === 'extensoes') desenharLateral(); });
-    if (!LOJA.campo) {
-      LOJA.campo = h('input', { type: 'search', class: 'busca-loja', placeholder: 'Buscar temas no Open VSX (ex.: dracula, one dark, material)' });
-      LOJA.campo.addEventListener('input', () => { LOJA.termo = LOJA.campo.value.trim(); buscarNaLoja(); });
-      buscarNaLoja();
-    }
-    const instaladas = new Set([...S.temas.cores, ...S.temas.icones].map((t) => t.id.split('#')[0]));
-    const linha = (t, ativo, aoClicar) => h('div', {
-      class: `item-arvore item-tema${ativo ? ' selecionado' : ''}`, title: `${t.nome}\n${t.extensao}`, onclick: aoClicar,
-    },
-    ic(ativo ? 'pass-filled' : 'circle-large-outline'),
-    h('span', { class: 'item-nome' }, t.nome),
-    h('span', { class: 'item-dica' }, t.extensao));
-    const resultado = (x) => {
-      const tem = instaladas.has(x.id);
-      const ocupado = LOJA.instalando.has(x.id);
-      return h('div', { class: 'item-loja', title: x.descricao },
-        x.icone ? h('img', { class: 'loja-icone', src: x.icone, alt: '' }) : h('span', { class: 'loja-icone' }, ic('extensions')),
-        h('div', { class: 'loja-texto' },
-          h('div', { class: 'loja-linha' }, h('strong', {}, x.titulo), h('span', { class: 'item-dica' }, `${(x.downloads / 1000).toFixed(x.downloads >= 10000 ? 0 : 1)} mil`)),
-          h('div', { class: 'loja-desc' }, x.descricao),
-          h('div', { class: 'loja-linha' }, h('span', { class: 'item-dica' }, x.namespace),
-            tem ? h('span', { class: 'tag-instalada' }, ic('check'), 'Instalada')
-              : h('button', { class: 'bt-mini bt-instalar', disabled: ocupado, onclick: () => instalarDaLoja(x) }, ocupado ? ic('loading', 'codicon-modifier-spin') : null, ocupado ? 'Instalando…' : 'Instalar'))));
-    };
-    return [
-      h('div', { class: 'loja-topo' }, LOJA.campo),
-      secao('loja', LOJA.termo ? 'Open VSX: resultados' : 'Open VSX: temas mais baixados', [
-        LOJA.erro ? h('p', { class: 'lateral-texto' }, LOJA.erro) : null,
-        LOJA.buscando && !LOJA.resultados?.length ? h('p', { class: 'lateral-texto' }, ic('loading', 'codicon-modifier-spin'), ' Buscando…') : null,
-        ...(LOJA.resultados || []).map(resultado),
-        LOJA.resultados && !LOJA.resultados.length && !LOJA.erro ? h('p', { class: 'lateral-texto' }, 'Nada encontrado.') : null,
-        h('p', { class: 'lateral-texto pequeno' }, 'O Open VSX é o registro aberto que o VSCodium e o Cursor usam. O Marketplace da Microsoft só pode ser usado pelos produtos dela. Por enquanto o Orbion.ai usa das extensões só os temas de cores e de ícones.'),
-      ], { cresce: true }),
-      secao('skills', 'Skills', [
-        !S.skills ? h('p', { class: 'lateral-texto' }, ic('loading', 'codicon-modifier-spin'), ' Procurando…') : null,
-        ...[...(S.skills || [])].sort((a, b) => ordemSkill(a) - ordemSkill(b) || a.nome.localeCompare(b.nome)).map((x) => h('div', {
-          class: 'item-arvore item-skill', title: `${x.nome}
-${x.descricao}
-${x.arquivo}`,
-          onclick: async () => { const l = await api('skill:ler', x.nome, S.projeto?.caminho || null); abrirTextoSomenteLeitura(`skill:${x.nome}`, `Skill: ${x.nome}`, `# ${x.nome}
-
-> ${l.descricao}
-
-${l.corpo}`); },
-        }, ic(x.nome === 'grill-me' ? 'flame' : 'sparkle'), h('span', { class: 'item-nome' }, x.nome), h('span', { class: 'item-dica' }, ORIGEM_SKILL[x.origem] || x.origem))),
-        h('div', { class: 'lateral-texto' }, h('button', { class: 'bt-mini', onclick: () => abrirNovaSkill() }, ic('add'), 'Nova skill'), ' ', h('button', { class: 'bt-mini', onclick: abrirDescobrir }, ic('compass'), 'Descobrir')),
-      ], { contador: S.skills?.length }),
-      secao('cores', 'Temas de cores instalados', S.temas.cores.map((t) => linha(t, t.id === S.config.tema, () => trocarTema(t.id))), { contador: S.temas.cores.length }),
-      secao('icones', 'Temas de ícones instalados', S.temas.icones.map((t) => linha(t, t.id === S.config.temaIcones, () => trocarIcones(t.id))), { contador: S.temas.icones.length }),
-      secao('pastas', 'De onde vêm', h('div', { class: 'lateral-texto' },
-        h('p', {}, 'Além do que tu instala aqui, o Orbion.ai lê as extensões de tema do VS Code e do Cursor deste PC.'),
-        S.temas.pastas.map((p) => h('p', { class: 'mono pequeno' }, p)))),
-    ];
-  },
-};
+// A vista de Extensões fica em extensoes.js.

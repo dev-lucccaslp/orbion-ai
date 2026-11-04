@@ -121,7 +121,8 @@ The first time, run `npm install` in this folder.
 
 - **Look**: Mac style. The window is a frame and the panels (sidebar, editor, Orchestra) float on it as rounded cards; menus and notifications are translucent, and the command palette looks like Spotlight. The default theme is **Orbion Noite**.
 - **Top**: the app name and the menus (File, Edit, Selection, View, Go, Terminal, Team, Help), search (Ctrl+P for files, Ctrl+Shift+P for commands), the buttons that show or hide the panels, Accounts and models, and Settings.
-- **Left**: the view switcher at the top: Explorer (with the icons of the chosen theme), Teams, Changes (git), Flows and Extensions (themes and skills).
+- **Left**: the view switcher at the top: Explorer (with the icons of the chosen theme), Teams, Changes (git), Flows, Skills and Extensions (themes).
+- **First launch**: a short tour highlights each part of the window. Skip it at any step (or press Esc); see it again from Help → Orbion tour.
 - **Center**: the editor, with tabs, syntax highlighting, minimap, Ctrl+S and diffs.
 - **Bottom**: the **Terminal** (PowerShell, Git Bash or Command Prompt, several at once, starting in the project folder) and **Live** (each agent's log).
 - **Right**: the **Orchestra**, the **Chat** and the **Flight**.
@@ -206,8 +207,10 @@ When an agent creates or changes something you can see, the screen it built open
 - **Images**: in both chats, paste with Ctrl+V (a screenshot, for example), drag into the box or use the image button. Up to 8 per message, up to 10 MB each (PNG, JPG, GIF or WebP). They are kept in the project's `.orbion/anexos`, which git ignores. Each agent gets them its engine's way: Claude opens the image from its path, Codex gets it with `-i` and API models get it inside the message (the model needs vision). Click an image to enlarge it.
 - **History** (clock at the top of the Orchestra and the Chat): each tab's conversations, grouped by Today, Yesterday, Last 7 days…, with search and delete. Nothing disappears: when you open the project, each tab comes back to its last conversation, and + starts a new one.
 - **Grill-me** (Team menu, or `/grill` in the request): the AI questions you in rounds, each question with a recommended answer, until the plan is clear. The summary becomes a request.
-- **Skills that come with Orbion**: grill-me, planejar-projeto, sugerir-melhorias, revisao-seguranca, tdd, criar-skill and explicar-projeto. Orbion also finds your Claude Code, Codex and plugin skills. They show up in the Extensions view, in the agent editor and in the Chat modes.
-- **Create a skill** (Team → Create skill): write it by hand, or describe the idea and click Write for the AI to build the SKILL.md. Save it in the project (`.claude/skills`, which Claude Code also uses) or for every project (`~/.orbion/skills`).
+- **Skills** (their own view in the sidebar): grouped by where they come from (this project, yours, Orbion, Claude Code, Codex, plugins), with search. Each skill has a page with its instructions, the file, which agents use it, and buttons to chat in that mode, edit the SKILL.md or make your own version.
+- **Skills that come with Orbion**: grill-me, planejar-projeto, sugerir-melhorias, revisao-seguranca, tdd, criar-skill and explicar-projeto. Orbion also finds your Claude Code, Codex and plugin skills. They show up in the Skills view, in the agent editor and in the Chat modes.
+- **Create a skill** (Team → Create skill, or + in the Skills view): write it by hand, or describe the idea and click Write for the AI to build the SKILL.md. Save it in the project (`.claude/skills`, which Claude Code also uses) or for every project (`~/.orbion/skills`).
+- **Generate images** (Team → Generate image…): describe the image and pick a style (photo, illustration, icon, logo, 3D, watercolor, pixel art), a format (square, landscape, portrait) and how many. Each result can be saved to the project as a `.png` or sent to the team, attached to a request in the Orchestra. Claude Code and Codex do not generate images, so this uses an API provider from Accounts and models: OpenAI (gpt-image-1), Google Gemini (Imagen, with a free tier) or OpenRouter.
 - **Improvement suggestions** (Team → Improvement suggestions, or `/melhorias`): an AI reads the project and returns what is most worth improving, by impact and effort. Each item comes with a ready request for the team, or to discuss first in grill-me.
 - **New project** (File menu): name, folder, description and a starting point (empty, Node.js, static site or Python), with git and the default team. After creating it, the team builds the start, or you talk it over first in grill-me.
 - **Discover** (Help menu): Orbion's skills and yours, and community ideas from claudemod.com (skills, mods, MCP servers), with a link for each category.
@@ -232,6 +235,8 @@ Orbion speaks **English, Portuguese and Spanish** (Settings → Appearance → L
 
 - The app reads the color and icon themes of the VS Code and Cursor extensions installed on your machine (Dracula, Material Icon Theme...). It also ships three themes of its own: Dracula, Orbion Noite and Orbion Dia.
 - In the **Extensions** view you search and install themes straight from **Open VSX** (open-vsx.org), the open registry used by VSCodium and Cursor. Microsoft's Marketplace may only be used by Microsoft products. Downloads are verified with Open VSX's SHA-256 signature. For now, Orbion.ai only uses the themes from extensions.
+- **Clicking an extension** opens its page, like in VS Code: icon, publisher, downloads, rating, version, the README, license, tags and links, with Install and, once installed, a button to use each of its themes.
+- **Changing the theme** is in Settings → Appearance. The Extensions view shows the theme in use, and the installed themes (folded by default) with a preview of their colors.
 
 ## Where things live
 

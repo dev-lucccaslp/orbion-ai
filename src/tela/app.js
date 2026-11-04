@@ -426,4 +426,5 @@ window.addEventListener('beforeunload', (e) => {
   const primeiro = S.config.vivas?.[0]?.projeto || S.config.projetos[0];
   if (primeiro) await abrirProjeto(primeiro);
   document.body.classList.add('pronto');
+  tourDaPrimeiraVez();
 })();

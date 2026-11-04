@@ -68,7 +68,7 @@ function prepararIdioma(id) {
     if (fixo.length < 2) continue; // "{0}" sozinho não diz nada
     // "{0} pedidos" é contagem: só vale com número (senão "Meus pedidos" viraria "Meus requests").
     // O gerúndio ("{0} trabalhando") fica de fora: ali vem um nome.
-    const soNumero = /^\{\d+\} [^\s{}]+$/.test(pt) && !/ndo$/.test(pt);
+    const soNumero = fixo.split(/\s+/).filter(Boolean).length <= 1 && !/ndo$/.test(fixo); // "{0} pedidos", "{0} de {1}"
     TRAD.padroes.push({ re: new RegExp(`^${corpo}$`), ordem, traducao, peso: fixo.length, soNumero });
   }
   TRAD.padroes.sort((a, b) => b.peso - a.peso);
@@ -79,7 +79,7 @@ function traduzirTrecho(s) {
   if (exato != null) return exato;
   for (const p of TRAD.padroes) {
     const m = p.re.exec(s);
-    if (!m || (p.soNumero && !/\d/.test(m[1]))) continue;
+    if (!m || (p.soNumero && m.slice(1).some((v) => !/\d/.test(v)))) continue;
     const valores = {};
     p.ordem.forEach((n, i) => { const v = m[i + 1]; valores[n] = TRAD.exatos.get(v.trim()) ?? v; });
     return p.traducao.replace(/\{(\d+)\}/g, (_, n) => valores[n] ?? '');

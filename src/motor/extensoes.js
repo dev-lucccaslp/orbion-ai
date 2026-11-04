@@ -80,6 +80,42 @@ async function instalar(namespace, nome) {
   }
 }
 
+/** A página de uma extensão no Open VSX: os dados e o README (só texto; nada dela roda aqui). */
+async function detalhes(namespace, nome) {
+  const r = await fetch(`${API}/${encodeURIComponent(namespace)}/${encodeURIComponent(nome)}`, { headers: { accept: 'application/json' } });
+  if (!r.ok) throw new Error(`O Open VSX respondeu ${r.status}.`);
+  const e = await r.json();
+  let leiame = '';
+  if (e.files?.readme) {
+    try {
+      const t = await fetch(e.files.readme);
+      if (t.ok) leiame = (await t.text()).slice(0, 200000);
+    } catch {}
+  }
+  return {
+    id: `${e.namespace}.${e.name}`.toLowerCase(),
+    namespace: e.namespace,
+    nome: e.name,
+    titulo: e.displayName || e.name,
+    descricao: e.description || '',
+    versao: e.version,
+    data: e.timestamp || null,
+    licenca: e.license || '',
+    repositorio: e.repository || '',
+    site: e.homepage || '',
+    categorias: e.categories || [],
+    tags: (e.tags || []).filter((x) => !/^__/.test(x)).slice(0, 12),
+    downloads: e.downloadCount || 0,
+    nota: e.averageRating || null,
+    avaliacoes: e.reviewCount || 0,
+    icone: e.files?.icon || null,
+    editor: e.namespaceDisplayName || e.namespace,
+    verificado: !!e.verified,
+    leiame,
+    url: `https://open-vsx.org/extension/${e.namespace}/${e.name}`,
+  };
+}
+
 /** Extensões instaladas pelo Orbion (as do VS Code ficam por conta do VS Code). */
 function instaladas() {
   const base = pastaExtensoes();
@@ -94,4 +130,4 @@ function instaladas() {
   }).filter(Boolean);
 }
 
-module.exports = { buscar, instalar, instaladas, pastaExtensoes };
+module.exports = { buscar, detalhes, instalar, instaladas, pastaExtensoes };

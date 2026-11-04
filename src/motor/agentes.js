@@ -34,9 +34,21 @@ function separarCabecalho(texto) {
   const m = semBom(texto).match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   if (!m) return { campos: {}, corpo: texto };
   const campos = {};
-  for (const linha of m[1].split(/\r?\n/)) {
+  const linhas = m[1].split(/\r?\n/);
+  for (let k = 0; k < linhas.length; k++) {
+    const linha = linhas[k];
+    if (/^\s/.test(linha)) continue; // continuação de um valor em várias linhas (tratada abaixo)
     const i = linha.indexOf(':');
-    if (i > 0) campos[linha.slice(0, i).trim()] = linha.slice(i + 1).trim();
+    if (i <= 0) continue;
+    const chave = linha.slice(0, i).trim();
+    let valor = linha.slice(i + 1).trim();
+    // "description: >-" (YAML em bloco): o valor são as linhas recuadas que vêm depois.
+    if (/^[>|][-+]?$/.test(valor)) {
+      const bloco = [];
+      while (k + 1 < linhas.length && (/^\s/.test(linhas[k + 1]) || !linhas[k + 1].trim())) bloco.push(linhas[++k].trim());
+      valor = valor.startsWith('>') ? bloco.filter(Boolean).join(' ') : bloco.join('\n').trim();
+    } else if (/^(["']).*\1$/.test(valor)) valor = valor.slice(1, -1);
+    campos[chave] = valor;
   }
   return { campos, corpo: m[2].trim() };
 }
