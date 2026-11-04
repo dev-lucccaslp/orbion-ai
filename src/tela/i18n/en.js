@@ -990,5 +990,10 @@
  "{0} comandos": "{0} commands",
  "Idioma": "Language",
  "Idioma…": "Language…",
+ "pronto": "ready",
+ "Documentador": "Documenter",
+ "Engenheiro": "Engineer",
+ "{0} trabalhando": "{0} working",
+ "preparado": "staged",
  "Language · Idioma. O Orbion recarrega no idioma novo, e os agentes passam a responder nele.": "Language · Idioma. Orbion reloads in the new language, and the agents start answering in it."
 };

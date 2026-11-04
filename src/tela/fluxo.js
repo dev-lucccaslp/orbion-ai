@@ -183,20 +183,28 @@ function estadosDosBlocos(fonte) {
 
 function arrumar(fluxo) {
   const ids = fluxo.blocos.map((b) => b.id);
+  const saem = new Map(ids.map((i) => [i, []]));
+  for (const l of fluxo.ligacoes) saem.get(l.de)?.push(l.para);
+  // A IA costuma ligar nos dois sentidos (a rota chama o banco, o banco devolve as linhas). Andando a partir
+  // do primeiro bloco (o começo do fluxo), a ligação que volta para quem ainda está no caminho é "volta":
+  // sai da conta das camadas e é desenhada por baixo.
   const entram = new Map(ids.map((i) => [i, []]));
-  for (const l of fluxo.ligacoes) entram.get(l.para)?.push(l.de);
+  const situacao = new Map();
+  const andar = (id) => {
+    situacao.set(id, 'no-caminho');
+    for (const p of saem.get(id) || []) {
+      if (situacao.get(p) === 'no-caminho') continue;
+      entram.get(p).push(id);
+      if (!situacao.has(p)) andar(p);
+    }
+    situacao.set(id, 'feito');
+  };
+  ids.forEach((id) => { if (!situacao.has(id)) andar(id); });
   const nivel = new Map();
-  const visitando = new Set();
   const calcular = (id) => {
     if (nivel.has(id)) return nivel.get(id);
-    if (visitando.has(id)) return -1; // ligação de volta (ciclo): não empurra a camada
-    visitando.add(id);
-    let n = 0;
-    for (const p of entram.get(id) || []) {
-      const np = calcular(p);
-      if (np >= 0) n = Math.max(n, np + 1);
-    }
-    visitando.delete(id);
+    nivel.set(id, 0);
+    const n = Math.max(0, ...(entram.get(id) || []).map((p) => calcular(p) + 1));
     nivel.set(id, n);
     return n;
   };

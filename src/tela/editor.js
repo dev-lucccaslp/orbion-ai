@@ -257,7 +257,7 @@ async function abrirDiff(rel, modo = 'tudo') {
   }
   const lang = linguagemDoArquivo(rel) || undefined;
   abrirAba({
-    id, tipo: 'diff', rel, modo, titulo: `${nomeDe(rel)} (${modo === 'preparado' ? 'preparado' : 'mudanças'})`,
+    id, tipo: 'diff', rel, modo, titulo: `${nomeDe(rel)} (${traduzir(modo === 'preparado' ? 'preparado' : 'mudanças')})`,
     original: monaco.editor.createModel(original || '', lang),
     modificado: monaco.editor.createModel(atual || '', lang),
   });

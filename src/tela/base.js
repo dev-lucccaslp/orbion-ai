@@ -334,11 +334,15 @@ function somarTokens(...lista) {
   return r;
 }
 
-/** 850 · 9,8 mil · 123 mil · 1,2 mi */
+/** 850 · 9,8 mil · 123 mil · 1,2 mi (em inglês: 9.8k · 123k · 1.2M) */
 function fmtTokens(n) {
   if (n < 1000) return String(n);
-  if (n < 1e6) return `${(n / 1000).toFixed(n < 1e4 ? 1 : 0).replace('.', ',')} mil`;
-  return `${(n / 1e6).toFixed(1).replace('.', ',')} mi`;
+  const idioma = typeof IDIOMA === 'undefined' ? 'pt' : IDIOMA;
+  const casas = (v, d) => (idioma === 'en' ? v.toFixed(d) : v.toFixed(d).replace('.', ','));
+  const mil = casas(n / 1000, n < 1e4 ? 1 : 0);
+  if (n < 1e6) return idioma === 'en' ? `${mil}k` : `${mil} mil`;
+  const mi = casas(n / 1e6, 1);
+  return idioma === 'en' ? `${mi}M` : idioma === 'es' ? `${mi} M` : `${mi} mi`;
 }
 
 /** "12 mil tokens", com a divisão no título. Nada quando ainda não há contagem. */

@@ -111,7 +111,7 @@ PAGINAS.montar = {
     // Na primeira vez, vê o que existe neste PC e redesenha com o modelo certo em cada card.
     if (!S.situacaoMotores || !S.provedores) conhecerMotoresDoPc().then((mudou) => { if (mudou && S.ativa === aba.id) redesenharPagina(aba); });
     aba.cor ??= CORES_TIME.find((c) => !S.projeto.times.some((t) => t.cor === c)) || CORES_TIME[0];
-    const nome = h('input', { valor: aba.nome ?? (primeiro ? 'Time principal' : `Time ${S.projeto.times.length + 1}`), maxlength: 40 });
+    const nome = h('input', { valor: aba.nome ?? (primeiro ? traduzir('Time principal') : `${traduzir('Time')} ${S.projeto.times.length + 1}`), maxlength: 40 }); // campo não passa pela tradução da página
     nome.addEventListener('input', () => { aba.nome = nome.value; });
     const descricao = h('input', { valor: aba.descricao || '', placeholder: 'Ex.: cuida do front-end; ou: só revisão e testes' });
     descricao.addEventListener('input', () => { aba.descricao = descricao.value; });
@@ -221,7 +221,7 @@ PAGINAS.montar = {
 /** "Neste PC: Claude Code logado · Codex não instalado · 1 provedor por API". */
 function resumoDosMotores() {
   if (!S.situacaoMotores) return 'Vendo quais modelos de IA existem neste PC…';
-  const cli = ['claude', 'codex'].map((m) => `${nomeDoMotor(m)} ${motorPronto(m) ? 'pronto' : situacaoDoMotor(m)}`);
+  const cli = ['claude', 'codex'].map((m) => `${nomeDoMotor(m)} ${traduzir(motorPronto(m) ? 'pronto' : situacaoDoMotor(m))}`);
   const api_ = (S.provedores || []).filter((p) => p.temChave || p.semChave).length;
   return `Neste PC: ${[...cli, api_ ? `${api_} provedor(es) por API` : null].filter(Boolean).join(' · ')}. Cada agente já vem com um que funciona aqui; clique no modelo do card para trocar.`;
 }

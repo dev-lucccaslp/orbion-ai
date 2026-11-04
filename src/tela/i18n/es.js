@@ -914,5 +914,8 @@
  "{0} ações": "{0} acciones",
  "{0} arquivo": "{0} archivo",
  "{0} arquivos": "{0} archivos",
+ "pronto": "listo",
+ "Engenheiro": "Ingeniero",
+ "{0} trabalhando": "{0} trabajando",
  "Language · Idioma. O Orbion recarrega no idioma novo, e os agentes passam a responder nele.": "Language · Idioma. Orbion se recarga en el idioma nuevo y los agentes pasan a responder en él."
 };

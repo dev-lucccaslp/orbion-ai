@@ -5,261 +5,284 @@
   </picture>
 </p>
 
-<h3 align="center">Times de IAs trabalhando juntos no teu projeto.</h3>
+<h3 align="center">Teams of AIs working together on your project.</h3>
 
 <p align="center">
-  Um editor de código onde o Claude Code, o Codex e modelos por API se organizam em times:<br>
-  um recebe o pedido e monta o plano, outros fazem, outros conferem, e tu acompanha tudo ao vivo.
+  A code editor where Claude Code, Codex and API models work as a team:<br>
+  one takes the request and plans it, others build, others check, and you watch it all live.
 </p>
 
 <p align="center">
-  <img alt="Versão 0.1.0" src="https://img.shields.io/badge/vers%C3%A3o-0.1.0-4C6BFF">
-  <img alt="Windows, macOS e Linux" src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-desktop-1d1d1f">
-  <img alt="Português, English, Español" src="https://img.shields.io/badge/idiomas-pt%20%C2%B7%20en%20%C2%B7%20es-2ea44f">
+  <img alt="Version 0.1.0" src="https://img.shields.io/badge/version-0.1.0-4C6BFF">
+  <img alt="Windows, macOS and Linux" src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-desktop-1d1d1f">
+  <img alt="English, Português, Español" src="https://img.shields.io/badge/languages-en%20%C2%B7%20pt%20%C2%B7%20es-2ea44f">
   <img alt="Electron 44" src="https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white">
 </p>
 
 <p align="center">
-  <img src="docs/imagens/fluxos-ao-vivo.png" alt="O fluxo de um pedido ao vivo: o bloco em que o Dev está mexendo acende, e o painel ao lado mostra os detalhes do bloco" width="920">
+  <img src="docs/imagens/overview.png" alt="Orbion.ai: the project files on the left, the code editor in the middle and the Orchestra, where you talk to the team, on the right" width="920">
 </p>
 
-## Baixar
+## Download
 
 <table>
   <tr>
     <td align="center" width="33%">
       <img src="docs/imagens/windows.svg" height="64" alt="Windows"><br>
       <b>Windows</b><br>
-      Windows 10 e 11 · 64 bits<br>
-      <sub>versão 0.1.0</sub><br><br>
-      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-windows-x64.exe"><b>Baixar o instalador</b></a><br>
+      Windows 10 and 11 · 64-bit<br>
+      <sub>version 0.1.0</sub><br><br>
+      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-windows-x64.exe"><b>Download the installer</b></a><br>
       <sub><code>.exe</code></sub>
     </td>
     <td align="center" width="33%">
       <img src="docs/imagens/macos.svg" height="64" alt="macOS"><br>
       <b>macOS</b><br>
-      Apple Silicon (M1 ou mais novo)<br>
-      <sub>versão 0.1.0</sub><br><br>
-      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-mac-arm64.dmg"><b>Baixar o app</b></a><br>
+      Apple Silicon (M1 or newer)<br>
+      <sub>version 0.1.0</sub><br><br>
+      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-mac-arm64.dmg"><b>Download the app</b></a><br>
       <sub><code>.dmg</code></sub>
     </td>
     <td align="center" width="33%">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons/linux/linux-original.svg" height="64" alt="Linux"><br>
       <b>Linux</b><br>
-      Ubuntu, Debian, Fedora e outros · 64 bits<br>
-      <sub>versão 0.1.0</sub><br><br>
-      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.AppImage"><b>Baixar o AppImage</b></a><br>
-      <sub>ou o <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.deb"><code>.deb</code></a> para Ubuntu e Debian</sub>
+      Ubuntu, Debian, Fedora and others · 64-bit<br>
+      <sub>version 0.1.0</sub><br><br>
+      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.AppImage"><b>Download the AppImage</b></a><br>
+      <sub>or the <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.deb"><code>.deb</code></a> for Ubuntu and Debian</sub>
     </td>
   </tr>
 </table>
 
-<sub>Todas as versões ficam em <a href="https://github.com/dev-lucccaslp/orbion-ai/releases">Releases</a>.</sub>
+<sub>Every version is in <a href="https://github.com/dev-lucccaslp/orbion-ai/releases">Releases</a>.</sub>
 
-**Antes de abrir**, deixe pelo menos um motor pronto: o [Claude Code](https://docs.anthropic.com/claude-code) ou o [Codex](https://github.com/openai/codex) instalado e logado (o Orbion usa a tua assinatura, sem chave de API), ou um provedor por token em **Contas e modelos**.
+**Before you start**, have at least one engine ready: [Claude Code](https://docs.anthropic.com/claude-code) or [Codex](https://github.com/openai/codex) installed and signed in (Orbion uses your subscription, no API key needed), or an API provider in **Accounts and models**.
 
 <details>
-<summary><b>Primeira abertura</b> (o instalador ainda não tem assinatura digital)</summary>
+<summary><b>First launch</b> (the installers are not code-signed yet)</summary>
 
-- **Windows**: se aparecer "O Windows protegeu o computador", clique em **Mais informações → Executar assim mesmo**.
-- **macOS**: arraste o Orbion.ai para Aplicativos. Na primeira vez, clique com o botão direito no app → **Abrir** → **Abrir**. Se o macOS disser que o app "está danificado", rode `xattr -cr /Applications/Orbion.ai.app` no Terminal.
-- **Linux**: no AppImage, `chmod +x Orbion.ai-linux-x64.AppImage` e abra. No `.deb`, `sudo apt install ./Orbion.ai-linux-x64.deb`.
+- **Windows**: if you see "Windows protected your PC", click **More info → Run anyway**.
+- **macOS**: drag Orbion.ai to Applications. The first time, right-click the app → **Open** → **Open**. If macOS says the app "is damaged", run `xattr -cr /Applications/Orbion.ai.app` in Terminal.
+- **Linux**: for the AppImage, `chmod +x Orbion.ai-linux-x64.AppImage` and open it. For the `.deb`, `sudo apt install ./Orbion.ai-linux-x64.deb`.
 
 </details>
 
-## O que ele faz
+## A quick tour
 
-- **Times em órbita**: o Orbion no centro e um anel por etapa. O Receptor recebe o pedido e monta o plano, os executores (PO, Designer, Dev, DBA...) fazem, e os verificadores (Tester, Revisor) conferem e devolvem se precisar.
-- **Fluxos do projeto, ao vivo**: cada funcionalidade vira um fluxo no estilo do n8n (tela → rota → tratamento → banco). Enquanto o time trabalha, o bloco em que cada agente mexe acende; depois, um clique no bloco pede uma mudança só nele.
-- **Qualquer modelo de IA**: Claude Code e Codex com a tua assinatura, modelos por token (Gemini, Grok, OpenRouter, OpenCode, Groq, DeepSeek, Mistral, OpenAI) e modelos que rodam no teu PC (Ollama, LM Studio), inclusive os grátis. Cada agente já vem com um que existe na tua máquina.
-- **Um editor de verdade**: o Monaco (o mesmo do VS Code), terminal integrado, git com commit e push, prévia das telas que os agentes constroem, e uma Conversa para pensar antes de pedir.
-- **Em português, inglês e espanhol**, com cara de Mac.
+### Build your team
 
-<p align="center">
-  <img src="docs/imagens/montar-time.png" alt="Montar o time: cada agente com o modelo de IA detectado neste PC, e a órbita mostrando quem recebe, quem faz e quem confere" width="920">
-</p>
+Pick the agents for the project. Each one already comes with an AI model that works on your machine: Orbion checks whether Claude Code and Codex are installed and signed in, and which API providers have a key. Click the model on a card to change it, or use **Same model for everyone**. The orbit shows the team by stage: the Receiver takes the request, the executors build, the verifiers check.
 
-## Rodar pelo código
+<p align="center"><img src="docs/imagens/team.gif" alt="Building a team: unchecking an agent, changing one agent's model and setting the same model for everyone" width="920"></p>
 
-Dois cliques em `Orbion.ai.cmd`, ou no terminal:
+### Ask, and watch it happen
+
+Write what you want in the Orchestra. The Receiver plans the work and draws the flow of the feature; you approve, and the team gets to work. In the flow, the block each agent is working on lights up with its name, and the screen the Designer builds opens in a preview on its own.
+
+<p align="center"><img src="docs/imagens/request-live.gif" alt="A real request: typing it, the plan and the flow appearing, approving, and the team working while the blocks light up" width="920"></p>
+
+### The flows of your project
+
+Every feature becomes a flow, n8n style: screen → route → data handling → database → back. The first time you open a project, an AI maps the main flows on its own. Click a block to see what it does, its files and connections, and to ask for a change in that block only.
+
+<p align="center"><img src="docs/imagens/flows.png" alt="The My orders flow: screen, route, login check and orders table, with the details of the GET /api/orders block" width="920"></p>
+
+### Give feedback on the screen itself
+
+When an agent builds something you can see, it opens in a preview next to the Orchestra. Mark points on the screen, write what should change and send it: the request goes with a screenshot to the agent who built it.
+
+<p align="center"><img src="docs/imagens/preview.png" alt="The preview of the sign-in screen with a marked point and a comment for the Designer" width="920"></p>
+
+## What it does
+
+- **Teams in orbit**: the Receiver takes the request and builds the plan, executors (PO, Designer, Dev, DBA...) build, and verifiers (Tester, Reviewer) check and send the work back when needed.
+- **Live project flows**: each feature drawn as connected blocks; they light up while the team works.
+- **Any AI model**: Claude Code and Codex with your subscription, API models (Gemini, Grok, OpenRouter, OpenCode, Groq, DeepSeek, Mistral, OpenAI) and models that run on your machine (Ollama, LM Studio), free ones included.
+- **A real editor**: Monaco (the editor from VS Code), an integrated terminal, git with commit and push, previews of the screens the agents build, and a Chat to think things through before asking.
+- **In English, Portuguese and Spanish**, with a Mac look.
+
+## Run from source
+
+Double-click `Orbion.ai.cmd`, or in a terminal:
 
 ```
 npm start
 ```
 
-Na primeira vez, rode `npm install` nesta pasta.
+The first time, run `npm install` in this folder.
 
-### Publicar uma versão
+### Publish a version
 
-- `npm run dist` gera, em `dist/`, o instalador do sistema em que tu está.
-- Para os três sistemas de uma vez: aumente a `version` no `package.json` e suba uma tag com o mesmo número (`git tag v0.1.1` e `git push origin v0.1.1`). O GitHub Actions ([release.yml](.github/workflows/release.yml)) monta os instaladores no Windows, no macOS e no Linux e publica tudo em Releases. Os arquivos têm sempre o mesmo nome, então os links de **Baixar** apontam sozinhos para a versão nova; só troque o número da versão no topo deste README.
-- Enquanto o repositório for privado, só quem tem acesso a ele consegue baixar.
+- `npm run dist` builds, in `dist/`, the installer for the system you are on.
+- For all three systems at once: bump `version` in `package.json` and push a tag with the same number (`git tag v0.1.1` and `git push origin v0.1.1`). GitHub Actions ([release.yml](.github/workflows/release.yml)) builds the installers on Windows, macOS and Linux and publishes them in Releases. The files always have the same name, so the **Download** links point to the new version on their own; just update the version number at the top of this README.
+- While the repository is private, only people with access to it can download.
 
-## A tela
+## The window
 
-- **Visual**: com cara de Mac. A janela é uma moldura e os painéis (barra lateral, editor, Orquestra) flutuam nela como cartões arredondados; menus e avisos são translúcidos e a paleta de comandos lembra o Spotlight. O tema padrão é o **Orbion Noite**.
-- **Topo**: o nome do app e os menus (Arquivo, Editar, Seleção, Ver, Ir, Terminal, Time, Ajuda), a busca (Ctrl+P para arquivos, Ctrl+Shift+P para comandos), os botões que mostram ou escondem os painéis, Contas e modelos e Configurações.
-- **Esquerda**: no topo, o seletor de vistas: Explorador (com os ícones do tema escolhido), Times, Mudanças (git), Fluxos e Extensões (temas e skills).
-- **Centro**: o editor, com abas, realce de sintaxe, minimapa, Ctrl+S e comparação de mudanças.
-- **Embaixo**: o **Terminal** (PowerShell, Git Bash ou Prompt de Comando, vários ao mesmo tempo, começando na pasta do projeto) e o **Ao vivo** (o log de cada agente).
-- **Direita**: a **Orquestra**, a **Conversa** e o **Voo**.
-- **Barra de status**: quem está trabalhando, o ramo do git, a linha e a coluna, a linguagem, e quanto do teu limite do Claude já foi usado.
+- **Look**: Mac style. The window is a frame and the panels (sidebar, editor, Orchestra) float on it as rounded cards; menus and notifications are translucent, and the command palette looks like Spotlight. The default theme is **Orbion Noite**.
+- **Top**: the app name and the menus (File, Edit, Selection, View, Go, Terminal, Team, Help), search (Ctrl+P for files, Ctrl+Shift+P for commands), the buttons that show or hide the panels, Accounts and models, and Settings.
+- **Left**: the view switcher at the top: Explorer (with the icons of the chosen theme), Teams, Changes (git), Flows and Extensions (themes and skills).
+- **Center**: the editor, with tabs, syntax highlighting, minimap, Ctrl+S and diffs.
+- **Bottom**: the **Terminal** (PowerShell, Git Bash or Command Prompt, several at once, starting in the project folder) and **Live** (each agent's log).
+- **Right**: the **Orchestra**, the **Chat** and the **Flight**.
+- **Status bar**: who is working, the git branch, line and column, the language, and how much of your Claude limit is used.
 
-## Como o Orbion.ai faz várias IAs trabalharem juntas
+## How Orbion.ai gets several AIs to work together
 
-1. **Vários times por projeto.** Cada projeto tem quantos times tu quiser (Front, API, QA...). Cada time tem um Receptor, que lê o pedido e monta o plano, e os agentes que tu escolher.
-2. **Leitores em paralelo, um escritor por vez.** Agentes que só leem (PO, Engenheiro, Revisor) trabalham ao mesmo tempo. Quem edita arquivos entra na fila de escrita do projeto, que vale para todos os times. Assim dois times trabalham juntos sem pisar no trabalho um do outro. O Voo mostra quem está escrevendo e quem está na fila.
-3. **Contexto enxuto.** Cada agente recebe a tarefa, os passes de bastão dos colegas e a memória do projeto, e não a conversa inteira.
-   - **Conversa contínua.** Na Orquestra, cada pedido novo continua a mesma conversa com o time. O Receptor (ou o agente do pedido direto) recebe o que já foi pedido e feito nela. Assim tu pode dizer "agora faça o mesmo em…" ou "deu erro".
-   - Cada agente mostra a **Execução** dentro da própria mensagem, como no Claude Code: o que leu, buscou, editou, rodou e disse. Ela fica aberta enquanto ele trabalha e se recolhe quando termina.
-4. **Passe de bastão.** Cada agente termina contando o que fez, quais arquivos mexeu e um recado para o próximo.
-5. **Revisão cruzada.** Quem verifica (Tester, Revisor) pode devolver o trabalho para quem fez, até um limite de voltas. Deixe o verificador num motor diferente do de quem fez (por exemplo, Dev no Claude e Tester no Codex): um modelo pega erros que o outro não vê.
-6. **Memória do projeto.** O que os agentes aprendem (convenções, comandos, armadilhas) fica em `.orbion/memoria.md` e entra nos próximos pedidos de todos os times. Tu pode editar esse arquivo.
-7. **Tu decide.** Tu aprova o plano, responde dúvidas e pode **intervir** num agente no meio do trabalho, pelo Voo ou pela Orquestra: ele para, tu diz o que fazer diferente, e ele recomeça com a tua orientação.
-   - **Parar**: enquanto o Receptor monta o plano, o botão Parar (na mensagem dele ou o quadrado ao lado do Enviar) para na hora e devolve o texto para a caixa. Serve para corrigir um pedido escrito errado sem gastar mais tokens, e esse pedido não entra na memória da conversa.
-   - Com o time já trabalhando, "Parar o pedido" pede confirmação, porque arquivos podem já ter mudado.
-8. **Verificar não é mudar.** O Receptor classifica cada pedido:
-   - **Pergunta**: ele mesmo responde.
-   - **Verificação** ("vamos ver se…", "confere…", "valida…"): os agentes só leem e consultam. Ninguém edita arquivos, e o verificador não manda ninguém voltar para corrigir.
-   - **Mudança**: o fluxo completo.
+1. **Several teams per project.** Each project has as many teams as you want (Front, API, QA...). Each team has a Receiver, who reads the request and builds the plan, and the agents you pick.
+2. **Readers in parallel, one writer at a time.** Agents that only read (PO, Engineer, Reviewer) work at the same time. Agents that edit files queue for the project's write lock, shared by all teams, so two teams can work together without stepping on each other. The Flight shows who is writing and who is waiting.
+3. **Lean context.** Each agent gets its task, the handoffs from its teammates and the project memory, not the whole conversation.
+   - **One continuous conversation.** In the Orchestra, each new request continues the same conversation with the team. The Receiver (or the agent of a direct request) gets what was already asked and done in it, so you can say "now do the same in…" or "that broke".
+   - Each agent shows its **Execution** inside its own message, like Claude Code: what it read, searched, edited, ran and said. It stays open while the agent works and folds when it finishes.
+4. **Handoffs.** Each agent finishes by telling what it did, which files it touched and a note for the next one.
+5. **Cross review.** Verifiers (Tester, Reviewer) can send the work back to whoever built it, up to a limit of rounds. Put the verifier on a different engine from the builder (Dev on Claude and Tester on Codex, for example): one model catches mistakes the other misses.
+6. **Project memory.** What the agents learn (conventions, commands, pitfalls) goes to `.orbion/memoria.md` and into the next requests of every team. You can edit that file.
+7. **You decide.** You approve the plan, answer questions and can **step in** on an agent mid-work, from the Flight or the Orchestra: it stops, you say what to do differently, and it starts again with your direction.
+   - **Stop**: while the Receiver is planning, the Stop button (in its message, or the square next to Send) stops right away and puts your text back in the box. Use it to fix a badly written request without spending more tokens; that request does not enter the conversation's memory.
+   - Once the team is working, "Stop the request" asks for confirmation, because files may have changed already.
+8. **Checking is not changing.** The Receiver classifies each request:
+   - **Question**: it answers itself.
+   - **Verification** ("let's see if…", "check…", "validate…"): the agents only read and query. Nobody edits files, and the verifier does not send anyone back to fix things.
+   - **Change**: the full flow.
 
-   A aprovação do plano diz qual é o caso e quem vai editar. O botão **Só validar** do compositor (ou `/validar`; `/executar` desliga) força a verificação até tu desligar.
+   The plan approval says which case it is and who will edit. The **Validate only** button in the composer (or `/validar`; `/executar` turns it off) forces a verification until you turn it off.
 
-## Times e agentes
+## Teams and agents
 
-- **Criar time** (vista Times → +, ou menu Time): a partir dos modelos de agente, só com o Receptor, ou copiando um time deste ou de outro projeto. Cada time tem nome, cor e descrição.
-- **O modelo de IA de cada agente** já vem do que existe neste PC: o Orbion vê se o Claude Code e o Codex estão instalados e logados e quais provedores por API têm token. Se o modelo padrão de um agente não existir aqui (o Tester usa Codex, por exemplo), ele troca sozinho pelo que funciona e marca **auto**. Clique no modelo do card para trocar, ou em **Mesmo modelo para todos**.
-- **A órbita**: o Orbion no centro e um anel por etapa: no 1º, quem recebe o pedido (Receptor); no 2º, quem faz (executores); no 3º, quem confere (verificadores).
-- **Modelos de agente**: Receptor, PO, Designer, Dev, Tester, DBA, Engenheiro, Revisor e Documentador, ou em branco.
-- **Editar um agente**: tu muda tudo nele.
-  - Identidade: nome, cor, ícone, ordem, ligado ou desligado, e a descrição.
-  - Papel: Receptor, Executor ou Verificador.
-  - Motor: Claude ou Codex, o modelo, o esforço de raciocínio e o tempo máximo.
-  - Permissões: se pode editar arquivos e rodar comandos. No Claude, também a lista exata de ferramentas e argumentos extras para o CLI.
-  - Skills, o modelo de prompt e as instruções.
-  - Dá para duplicar o agente, copiá-lo para outro time, ver o prompt montado ou abrir o arquivo `.md`.
-- **Pedir**: na Orquestra, escolha o time no botão ao lado de "Enviar". Enquanto um time trabalha, tu pode mandar outro pedido para outro time.
+- **Create a team** (Teams view → +, or the Team menu): from the agent templates, with only the Receiver, or copying a team from this or another project. Each team has a name, a color and a description.
+- **Each agent's AI model** comes from what exists on your machine: Orbion checks whether Claude Code and Codex are installed and signed in, and which API providers have a key. If an agent's default model is not available (the Tester uses Codex, for example), it switches to one that works and shows **auto**. Click the model on the card to change it, or **Same model for everyone**.
+- **The orbit**: Orbion in the center and one ring per stage: the 1st for who takes the request (Receiver), the 2nd for who builds (executors), the 3rd for who checks (verifiers).
+- **Agent templates**: Receiver, PO, Designer, Dev, Tester, DBA, Engineer, Reviewer and Documenter, or blank.
+- **Edit an agent**: you can change everything.
+  - Identity: name, color, icon, order, on or off, and the description.
+  - Role: Receiver, Executor or Verifier.
+  - Engine: Claude or Codex, the model, the reasoning effort and the time limit.
+  - Permissions: whether it can edit files and run commands. On Claude, also the exact list of tools and extra CLI arguments.
+  - Skills, the prompt template and the instructions.
+  - You can duplicate the agent, copy it to another team, see the assembled prompt or open its `.md` file.
+- **Ask**: in the Orchestra, pick the team in the button next to Send. While one team works, you can send another request to another team.
 
-## Contas e modelos
+## Accounts and models
 
-Botão de pessoa na barra da esquerda (ou menu Ajuda → Contas e modelos).
+The person button at the top (or Help → Accounts and models).
 
-- **Assinaturas**: mostra se o Claude Code e o Codex estão conectados e com qual conta. Conectar, Sair e Instalar rodam o comando no terminal aqui de baixo.
-- **Modelos por token**: escolha um provedor, cole o token e clique em Salvar e testar. O teste busca os modelos do provedor (os grátis vêm primeiro). O token fica criptografado pelo Windows e nunca mais aparece na tela.
-  - **Grátis**: OpenCode (big-pickle, glm-5.3-flash-free e outros; o token sai em opencode.ai/console), os modelos `:free` do OpenRouter e as cotas grátis do Gemini (Google AI Studio) e do Groq.
-  - **No teu PC, sem token**: Ollama e LM Studio.
-  - **Outro**: qualquer serviço que fale o formato da API da OpenAI.
-- **Cada agente escolhe o seu motor** no editor dele: Claude Code, Codex ou um provedor cadastrado, e o modelo com a versão (Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5, GPT-6-Astra...). Nos modelos por API, o próprio Orbion dá as ferramentas: ler, listar e buscar arquivos sempre; escrever e rodar comandos conforme as permissões do agente. O modelo precisa aceitar ferramentas (function calling).
-- **Quem responde as conversas, as melhorias e as skills** também se escolhe ali.
-- **GitHub**: a conta do GitHub CLI (`gh`). Conectar mostra um código no terminal e abre o GitHub no navegador. O card também mostra com qual nome e e-mail os commits saem.
+- **Subscriptions**: shows whether Claude Code and Codex are connected and with which account. Connect, Sign out and Install run the command in the terminal below.
+- **Models by API key**: pick a provider, paste the key and click Save and test. The test fetches the provider's models (free ones first). The key is encrypted by the operating system and never shown again.
+  - **Free**: OpenCode (big-pickle, glm-5.3-flash-free and others; get the key at opencode.ai/console), OpenRouter's `:free` models and the free tiers of Gemini (Google AI Studio) and Groq.
+  - **On your machine, no key**: Ollama and LM Studio.
+  - **Other**: any service that speaks the OpenAI API format.
+- **Each agent picks its engine** in its editor: Claude Code, Codex or a registered provider, and the model with its version (Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5, GPT-6-Astra...). With API models, Orbion itself provides the tools: reading, listing and searching files always; writing and running commands according to the agent's permissions. The model must support tools (function calling).
+- **Who answers the chats, the suggestions and the skills** is also chosen there.
+- **GitHub**: the GitHub CLI (`gh`) account. Connect shows a code in the terminal and opens GitHub in the browser. The card also shows the name and email commits are made with.
 
-## Mudanças (git)
+## Changes (git)
 
-Funciona como o Controle de Código do VS Code:
-- **Topo**: a branch atual, com a lista para trocar ou criar outra, e a branch dela no servidor.
-- **Mensagem do commit**: a estrela pede para a IA escrever a mensagem a partir das mudanças, e Ctrl+Enter faz o commit. O menu do botão Commit também tem "Commit e enviar" e "Commit e sincronizar". Se nada estiver preparado, o Commit oferece preparar tudo.
-- **Preparadas para o commit** e **Alterações**:
-  - Clicar no arquivo abre o antes e o depois daquele lado.
-  - Ao passar o mouse aparecem abrir, preparar (+), despreparar (−) e descartar. Descartar pede confirmação, e um arquivo novo vai para a lixeira.
-- **Botão de baixo**: muda conforme o caso, como no VS Code: "Publicar no GitHub" (sem servidor), "Publicar a branch" (branch nova) ou "Sincronizar 1↓ 2↑".
-- **Barra de status**: a branch (clique para trocar) e o mesmo sincronizar.
-- **Mais ações (⋯)**: pull, push, fetch, preparar, despreparar e descartar tudo, e abrir no GitHub.
-- **Projeto sem git**: "Inicializar repositório" ou "Publicar no GitHub". O "Publicar no GitHub" inicia o git, faz o primeiro commit e cria o repositório (privado ou público) pelo GitHub CLI.
+Works like VS Code's Source Control:
+- **Top**: the current branch, with the list to switch or create one, and its remote branch.
+- **Commit message**: the star asks the AI to write the message from the changes, and Ctrl+Enter commits. The Commit button's menu also has "Commit and push" and "Commit and sync". If nothing is staged, Commit offers to stage everything.
+- **Staged** and **Changes**:
+  - Clicking a file opens the before and after of that side.
+  - Hovering shows open, stage (+), unstage (−) and discard. Discard asks for confirmation, and a new file goes to the trash.
+- **Bottom button**: changes with the situation, like in VS Code: "Publish to GitHub" (no remote), "Publish branch" (new branch) or "Sync 1↓ 2↑".
+- **Status bar**: the branch (click to switch) and the same sync.
+- **More actions (⋯)**: pull, push, fetch, stage, unstage and discard all, and open on GitHub.
+- **Project without git**: "Initialize repository" or "Publish to GitHub". "Publish to GitHub" starts git, makes the first commit and creates the repository (private or public) through the GitHub CLI.
 
-## Prévia das telas
+## Screen previews
 
-Quando um agente cria ou muda algo que se vê, a tela que ele construiu abre numa aba ao lado da Orquestra.
-- **De onde vem**: o agente aponta, no campo `previa` do passe, um `.html` do projeto ou o `http://localhost:PORTA` de um servidor que já esteja rodando. Se ele não apontar mas tiver criado um `.html`, o Orbion usa esse.
-- **O Designer**: numa tela nova ou mudança visual grande, ele faz também um protótipo em `docs/prototipos/<tela>.html` só para ver.
-- **Na aba**: a prévia recarrega sozinha quando os arquivos mudam. Na barra tem o endereço, recarregar e abrir no navegador. Também abre pelo botão **Ver a tela** na mensagem do agente, por Ver → Prévia de uma tela… ou por `/previa`.
-- **Opinar**:
-  - escreva o que mudar e, se quiser, ligue **Marcar pontos** e clique na tela. Cada ponto numerado ganha o seu comentário;
-  - **Mandar** cria um pedido na mesma conversa, com uma foto da prévia já com os pontos;
-  - o pedido vai para quem mexeu no arquivo, ou para o Receptor decidir (quando quem mostrou só especificou, como o Designer). O "Para" deixa escolher outro agente.
-- **Segurança**: a prévia é servida só neste PC (127.0.0.1), atrás de um código aleatório no caminho. Pastas e arquivos ocultos (`.git`, `.orbion`, `.env`) nunca saem.
+When an agent creates or changes something you can see, the screen it built opens in a tab next to the Orchestra.
+- **Where it comes from**: in the `previa` field of its handoff, the agent points to an `.html` in the project or to the `http://localhost:PORT` of a server already running. If it does not point to one but created an `.html`, Orbion uses that.
+- **The Designer**: for a new screen or a big visual change, it also makes a prototype in `docs-design/prototipos/<screen>.html`, just to look at.
+- **In the tab**: the preview reloads on its own when files change. The bar has the address, reload and open in the browser. It also opens from the **View the screen** button in the agent's message, from View → Preview a screen… or with `/previa`.
+- **Give feedback**:
+  - write what should change and, if you want, turn on **Mark points** and click on the screen. Each numbered point gets its own comment;
+  - **Send** creates a request in the same conversation, with a screenshot of the preview including the points;
+  - the request goes to whoever touched the file, or to the Receiver (when whoever showed it only specified it, like the Designer). "To" lets you pick another agent.
+- **Security**: the preview is served only on this machine (127.0.0.1), behind a random code in the path. Hidden folders and files (`.git`, `.orbion`, `.env`) are never served.
 
-## Conversa, skills e ferramentas
+## Chat, skills and tools
 
-- **Conversa** (aba no painel da direita, Ctrl+L): falar sobre o projeto com uma IA que lê os arquivos, mas não altera nada. Escolha o modo (uma skill) e quem responde. Uma resposta vira pedido para o time com **Virar pedido**.
-- **Imagens**: nos dois chats, cole com Ctrl+V (um print, por exemplo), arraste para a caixa ou use o botão de imagem. São até 8 por mensagem, de até 10 MB cada (PNG, JPG, GIF ou WebP). Elas ficam em `.orbion/anexos` do projeto, que o git ignora. Cada agente recebe do jeito do motor dele: o Claude abre a imagem pelo caminho, o Codex recebe com `-i` e o modelo por API recebe dentro da mensagem (ele precisa ter visão). Clique numa imagem para ampliar.
-- **Histórico** (relógio no topo da Orquestra e da Conversa): as conversas de cada aba, agrupadas por Hoje, Ontem, Últimos 7 dias…, com busca e excluir. Nada some: ao abrir o projeto, cada aba volta na última conversa, e o + começa uma nova.
-- **Grill-me** (menu Time, ou `/grill` no pedido): a IA te questiona em rodadas, cada pergunta com uma resposta recomendada, até o plano ficar claro. O resumo vira pedido.
-- **Skills que já vêm no Orbion**: grill-me, planejar-projeto, sugerir-melhorias, revisao-seguranca, tdd, criar-skill e explicar-projeto. O Orbion também acha as tuas skills do Claude Code, do Codex e dos plugins. Elas aparecem na vista Extensões, no editor do agente e nos modos da Conversa.
-- **Criar skill** (menu Time → Criar skill): escreva à mão, ou descreva a ideia e clique em Escrever para a IA montar o SKILL.md. Guarde no projeto (`.claude/skills`, que o Claude Code também usa) ou para todos os projetos (`~/.orbion/skills`).
-- **Sugestões de melhoria** (menu Time → Sugestões de melhoria, ou `/melhorias`): uma IA lê o projeto e devolve o que mais vale melhorar, por impacto e esforço. Cada item traz um pedido pronto para o time, ou para discutir antes no grill-me.
-- **Novo projeto** (menu Arquivo): nome, pasta, descrição e um começo (vazio, Node.js, site estático ou Python), com git e o time padrão. Depois de criar, o time monta o começo, ou tu conversa antes no grill-me.
-- **Descobrir** (menu Ajuda): as skills do Orbion e as tuas, e ideias da comunidade do claudemod.com (skills, mods, servidores MCP), com link para cada categoria.
+- **Chat** (tab in the right panel, Ctrl+L): talk about the project with an AI that reads the files but changes nothing. Pick the mode (a skill) and who answers. An answer becomes a request for the team with **Turn into request**.
+- **Images**: in both chats, paste with Ctrl+V (a screenshot, for example), drag into the box or use the image button. Up to 8 per message, up to 10 MB each (PNG, JPG, GIF or WebP). They are kept in the project's `.orbion/anexos`, which git ignores. Each agent gets them its engine's way: Claude opens the image from its path, Codex gets it with `-i` and API models get it inside the message (the model needs vision). Click an image to enlarge it.
+- **History** (clock at the top of the Orchestra and the Chat): each tab's conversations, grouped by Today, Yesterday, Last 7 days…, with search and delete. Nothing disappears: when you open the project, each tab comes back to its last conversation, and + starts a new one.
+- **Grill-me** (Team menu, or `/grill` in the request): the AI questions you in rounds, each question with a recommended answer, until the plan is clear. The summary becomes a request.
+- **Skills that come with Orbion**: grill-me, planejar-projeto, sugerir-melhorias, revisao-seguranca, tdd, criar-skill and explicar-projeto. Orbion also finds your Claude Code, Codex and plugin skills. They show up in the Extensions view, in the agent editor and in the Chat modes.
+- **Create a skill** (Team → Create skill): write it by hand, or describe the idea and click Write for the AI to build the SKILL.md. Save it in the project (`.claude/skills`, which Claude Code also uses) or for every project (`~/.orbion/skills`).
+- **Improvement suggestions** (Team → Improvement suggestions, or `/melhorias`): an AI reads the project and returns what is most worth improving, by impact and effort. Each item comes with a ready request for the team, or to discuss first in grill-me.
+- **New project** (File menu): name, folder, description and a starting point (empty, Node.js, static site or Python), with git and the default team. After creating it, the team builds the start, or you talk it over first in grill-me.
+- **Discover** (Help menu): Orbion's skills and yours, and community ideas from claudemod.com (skills, mods, MCP servers), with a link for each category.
 
-## Fluxos do projeto
+## Project flows
 
-Por onde cada funcionalidade passa (tela → rota → tratamento dos dados → banco → volta), desenhado em blocos ligados, no estilo do n8n. Abre pela vista **Fluxos**, por Ver → Fluxos do projeto ou Ctrl+Shift+F.
-- **Ao abrir um projeto pela primeira vez**, uma IA lê o projeto (gastando pouco: procura rotas, telas e tabelas, sem ler tudo) e monta os fluxos principais. Dá para desligar em Configurações e refazer pelo botão de mapear.
-- **Em cada pedido de mudança**, o Receptor desenha o fluxo no plano e diz quais blocos cada tarefa faz; os agentes devolvem no passe os blocos que fizeram, com os arquivos de verdade. A aba abre sozinha quando o plano chega.
-- **Ao vivo**: o bloco em que um agente está mexendo pulsa com o nome dele e as ligações correm; o que ficou pronto ganha um check, e o que ainda é só plano fica tracejado.
-- **Clicar num bloco** mostra o que ele faz, os arquivos (abrem no editor), as ligações, as tarefas do pedido e, se for uma tela, **Ver a tela**. Quando o time termina, **Pedir mudança** ali manda um pedido novo só sobre aquele bloco, com o fluxo inteiro de contexto, para quem fez o bloco ou para o Receptor.
-- **Arrumar**: arraste os blocos (a posição fica salva), roda do mouse para zoom, duplo clique para enquadrar tudo.
+How each feature works end to end (screen → route → data handling → database → back), drawn as connected blocks, n8n style. Open it from the **Flows** view, View → Project flows or Ctrl+Shift+F.
+- **The first time a project opens**, an AI reads it (cheaply: it looks for routes, screens and tables instead of reading everything) and maps the main flows. You can turn this off in Settings and redo it with the map button.
+- **On each change request**, the Receiver draws the flow in the plan and says which blocks each task builds; the agents return the blocks they built in their handoff, with the real files. The tab opens on its own when the plan arrives.
+- **Live**: the block an agent is working on pulses with its name and the connections flow; what is done gets a check, and what is still only planned is dashed.
+- **Clicking a block** shows what it does, its files (they open in the editor), its connections, the request's tasks and, for a screen, **View the screen**. When the team is done, **Request change** there sends a new request about that block only, with the whole flow as context, to whoever built it or to the Receiver.
+- **Arrange**: drag the blocks (positions are saved), mouse wheel to zoom, double-click to fit everything.
 
-## Idiomas
+## Languages
 
-O Orbion fala **português, inglês e espanhol** (Configurações → Aparência → Idioma, ou Ver → Idioma…). Começa no idioma do sistema.
-- A interface troca toda, inclusive menus, avisos e diálogos do Windows. Código, arquivos, terminal e o que as IAs escrevem ficam como estão.
-- Os agentes, a Conversa e o mapa dos fluxos passam a responder no idioma escolhido, inclusive com os prompts que tu editou.
-- As traduções ficam em `src/tela/i18n/en.js` e `es.js`: a chave é o texto em português, o valor é a tradução.
+Orbion speaks **English, Portuguese and Spanish** (Settings → Appearance → Language, or View → Language…). It starts in the system's language.
+- The whole interface switches, including menus, notifications and system dialogs. Code, files, the terminal and what the AIs write stay as they are.
+- The agents, the Chat and the flow map answer in the chosen language, even with prompts you edited.
+- The translations live in `src/tela/i18n/en.js` and `es.js`: the key is the Portuguese text and the value is the translation.
 
-## Temas e extensões
+## Themes and extensions
 
-- O app lê os temas de cores e de ícones das extensões do VS Code e do Cursor instaladas neste PC (Dracula, Material Icon Theme...). Também vêm três temas próprios: Dracula, Orbion Noite e Orbion Dia.
-- Na vista **Extensões** tu busca e instala temas direto do **Open VSX** (open-vsx.org), o registro aberto que o VSCodium e o Cursor usam. O Marketplace da Microsoft só pode ser usado pelos produtos dela. O download é conferido pela assinatura SHA-256 do Open VSX. Por enquanto, o Orbion.ai usa das extensões só os temas.
+- The app reads the color and icon themes of the VS Code and Cursor extensions installed on your machine (Dracula, Material Icon Theme...). It also ships three themes of its own: Dracula, Orbion Noite and Orbion Dia.
+- In the **Extensions** view you search and install themes straight from **Open VSX** (open-vsx.org), the open registry used by VSCodium and Cursor. Microsoft's Marketplace may only be used by Microsoft products. Downloads are verified with Open VSX's SHA-256 signature. For now, Orbion.ai only uses the themes from extensions.
 
-## Onde fica cada coisa
+## Where things live
 
-- `<projeto>/.orbion/times/<time>/time.json` e `agentes/*.md`: os times e os agentes.
-- `<projeto>/.orbion/prompts/`: os modelos de prompt personalizados.
-- `<projeto>/.orbion/memoria.md`: a memória do projeto.
-- `<projeto>/.orbion/fluxos.json`: os fluxos do projeto (blocos, ligações, onde tu arrumou cada bloco).
-- `<projeto>/.orbion/config.json`: o fluxo (aprovação, paralelo, memória, voltas, tempo, tarefas por plano).
-- `<projeto>/.orbion/execucoes/<data>/`: o registro de cada pedido. Para cada agente, ficam o prompt que ele recebeu, o comando exato e a resposta.
-- `<projeto>/.orbion/conversas/`: as conversas. `<projeto>/.orbion/melhorias.json`: a última análise de melhorias.
-- `<projeto>/.claude/skills/` e `~/.orbion/skills/`: as skills que tu cria.
-- `~/.orbion/extensoes/`: as extensões instaladas pelo app.
-- `%APPDATA%\Orbion.ai\config.json`: projetos recentes, idioma, tema, fonte, terminal padrão, layout e quem responde as conversas.
-- `%APPDATA%\Orbion.ai\provedores.json`: os provedores por token, com o token criptografado. O token também pode vir de uma variável de ambiente `ORBION_CHAVE_<ID>` (ex.: `ORBION_CHAVE_OPENROUTER`).
+- `<project>/.orbion/times/<team>/time.json` and `agentes/*.md`: the teams and agents.
+- `<project>/.orbion/prompts/`: your custom prompt templates.
+- `<project>/.orbion/memoria.md`: the project memory.
+- `<project>/.orbion/fluxos.json`: the project flows (blocks, connections, where you arranged each block).
+- `<project>/.orbion/config.json`: the workflow (approval, parallel, memory, rounds, time, tasks per plan).
+- `<project>/.orbion/execucoes/<date>/`: the record of each request. For each agent: the prompt it got, the exact command and the answer.
+- `<project>/.orbion/conversas/`: the chats. `<project>/.orbion/melhorias.json`: the latest improvement analysis.
+- `<project>/.claude/skills/` and `~/.orbion/skills/`: the skills you create.
+- `~/.orbion/extensoes/`: the extensions installed by the app.
+- `%APPDATA%\Orbion.ai\config.json`: recent projects, language, theme, font, default terminal, layout and who answers the chats.
+- `%APPDATA%\Orbion.ai\provedores.json`: the API providers, with the key encrypted. The key can also come from an environment variable `ORBION_CHAVE_<ID>` (e.g. `ORBION_CHAVE_OPENROUTER`).
 
-## Atalhos
+## Shortcuts
 
-| Atalho | O que faz |
+| Shortcut | What it does |
 |---|---|
-| Ctrl+I | Novo pedido |
-| Enter / Ctrl+Enter | Nos chats: enviar / quebrar a linha (Shift+Enter também quebra) |
-| Ctrl+Shift+V | Voo |
-| Ctrl+L | Conversa |
-| Ctrl+´ | Mostrar ou esconder o terminal |
-| Ctrl+Shift+´ | Novo terminal |
-| Ctrl+P | Buscar arquivo |
-| Ctrl+Shift+P | Comandos |
-| Ctrl+S | Salvar |
-| Ctrl+W | Fechar aba |
-| Ctrl+B | Barra lateral |
-| Ctrl+J | Painel de baixo |
-| Ctrl+Alt+B | Painel direito |
-| Ctrl+Shift+E / T / G / X | Explorador / Times / Mudanças / Extensões |
+| Ctrl+I | New request |
+| Enter / Ctrl+Enter | In the chats: send / new line (Shift+Enter also adds a line) |
+| Ctrl+Shift+V | Flight |
+| Ctrl+L | Chat |
+| Ctrl+Shift+F | Project flows |
+| Ctrl+´ | Show or hide the terminal |
+| Ctrl+Shift+´ | New terminal |
+| Ctrl+P | Find a file |
+| Ctrl+Shift+P | Commands |
+| Ctrl+S | Save |
+| Ctrl+W | Close tab |
+| Ctrl+B | Sidebar |
+| Ctrl+J | Bottom panel |
+| Ctrl+Alt+B | Right panel |
+| Ctrl+Shift+E / T / G / X | Explorer / Teams / Changes / Extensions |
 
-## Bom saber
+## Good to know
 
-- **Uso do plano**: cada agente é uma chamada ao Claude ou ao Codex, e dois times juntos gastam o dobro. O Voo e a barra de status mostram quanto já foi usado.
+- **Plan usage**: each agent is a call to Claude or Codex, and two teams at once use twice as much. The Flight and the status bar show how much is used.
 - **Tokens**:
-  - **Onde aparecem**: no cabeçalho de cada agente (ao vivo enquanto ele trabalha), na linha do fim de cada pedido, nos cartões do Voo e em cada resposta da Conversa. Passe o mouse para ver a divisão: entrada nova, cache lido, cache criado e saída.
-  - **O que pesa**: cada chamada ao Claude Code já começa com uns 10 a 15 mil tokens fixos (o prompt dele e o do Orbion), quase tudo do cache. Por isso economiza mais fazer menos chamadas do que escrever pedidos curtos.
-  - **Como economizar**: pedido direto com @agente (não passa pelo Receptor), Só validar (1 ou 2 tarefas, sem revisão), modelo menor nos agentes simples (Haiku 5.5) e menos tarefas e voltas nas configurações do projeto.
-- **Comandos sem confirmação**: os agentes com permissão rodam comandos e editam arquivos sem pedir confirmação. Usa em projetos que estejam no Git, para poder desfazer.
-- **Sem limite de tempo**: cada agente trabalha até terminar. Se quiser um limite, coloque nas configurações do projeto ou no editor do agente (vazio ou 0 é sem limite). Para parar antes, use o Parar.
-- **Pasta com vários projetos** (como um monorepo): o Orbion reconhece as subpastas que são projetos e avisa o Receptor e os agentes. Tudo o que eles criam vai dentro do projeto do pedido, nunca solto na raiz. O design vai em `<projeto>/docs-design/<assunto>.md` e a arquitetura em `<projeto>/docs-arquitetura/<assunto>.md`.
-- **Isolamento**: os agentes do Claude rodam sem os teus conectores, plugins e hooks.
-- **Modelos por API**: cada passo é uma chamada ao provedor, que cobra por token (menos nos grátis e nos locais). Modelos pequenos às vezes erram no uso das ferramentas; para editar código, prefira um modelo forte.
-- **Codex**: o Tester e o Revisor vêm com o modelo `gpt-6-astra`, porque o Codex da linha de comando recusa o modelo do teu `config.toml` com a conta do ChatGPT.
+  - **Where they show**: in each agent's header (live while it works), on the closing line of each request, on the Flight cards and on each Chat answer. Hover to see the split: fresh input, cache read, cache written and output.
+  - **What weighs**: every Claude Code call starts with about 10 to 15 thousand fixed tokens (its prompt and Orbion's), almost all from cache. So making fewer calls saves more than writing short requests.
+  - **How to save**: a direct request with @agent (skips the Receiver), Validate only (1 or 2 tasks, no review), a smaller model for simple agents (Haiku 5.5) and fewer tasks and rounds in the project settings.
+- **No confirmations for commands**: agents with permission run commands and edit files without asking. Use it on projects under git, so you can undo.
+- **No time limit**: each agent works until it is done. If you want a limit, set it in the project settings or in the agent editor (empty or 0 means no limit). To stop earlier, use Stop.
+- **A folder with several projects** (like a monorepo): Orbion recognizes the subfolders that are projects and tells the Receiver and the agents. Everything they create goes inside the request's project, never loose at the root. Design goes in `<project>/docs-design/<topic>.md` and architecture in `<project>/docs-arquitetura/<topic>.md`.
+- **Isolation**: Claude agents run without your connectors, plugins and hooks.
+- **API models**: each step is a call to the provider, which charges per token (except free and local ones). Small models sometimes get tool use wrong; for editing code, prefer a strong model.
+- **Codex**: the Tester and the Reviewer come with the `gpt-6-astra` model, because the command-line Codex rejects the model in your `config.toml` when signed in with a ChatGPT account.
 
-## Sem a tela
+## Without the window
 
 ```
-node src/cli.js <pasta-do-projeto> "o que tu quer" [--time <id>] [--auto]
+node src/cli.js <project-folder> "what you want" [--time <id>] [--auto]
 ```

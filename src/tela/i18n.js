@@ -10,11 +10,35 @@ const TRAD = { exatos: new Map(), padroes: [], memoria: new Map(), postos: new W
 
 // Onde o texto é do projeto ou das IAs, e não da interface.
 const NAO_TRADUZ = [
-  '[translate="no"]', '.monaco-editor', '.xterm', '.md', 'pre', 'code', '.log', '.orbita-nome', '.ev-texto', '.mono',
-  '.item-nome', '.msg-texto', '.tarefa-resumo', '.passe', '.entendimento-texto', '.entendimento-pedido', '.portao-texto',
-  '.fluxo-titulo', '.fluxo-sub', '.fluxo-rotulo', '.gaveta-nome', '.gaveta-agora', '.fluxo-resumo',
+  '[translate="no"]', '.monaco-editor', '.xterm', '.md', 'pre', 'code', '.log', '.ev-texto', '.mono',
+  '.msg-texto-corpo', '.tarefa-resumo', '.passe', '.entendimento-texto', '.entendimento-pedido', '.portao-texto',
+  '.fluxo-titulo', '.fluxo-sub', '.fluxo-rotulo', '.gaveta-nome h3', '.gaveta-agora', '.fluxo-resumo',
 ].join(', ');
 const ATRIBUTOS_TRADUZIDOS = ['title', 'placeholder', 'aria-label'];
+// As ações dos agentes ("Lendo src/app.js") ficam em áreas de código: lá, só o verbo do começo muda.
+const SO_O_VERBO = '.mono, .log, .ev-texto';
+const NUNCA = '.monaco-editor, .xterm, .md, pre, code, textarea';
+const VERBOS = {
+  en: { Lendo: 'Reading', Criando: 'Creating', Editando: 'Editing', Procurando: 'Finding', Buscando: 'Searching', Listando: 'Listing' },
+  es: { Lendo: 'Leyendo', Criando: 'Creando', Editando: 'Editando', Procurando: 'Buscando', Buscando: 'Buscando', Listando: 'Listando' },
+};
+
+function trocarVerbo(no) {
+  const m = /^(\s*)(Lendo|Criando|Editando|Procurando|Buscando|Listando) /.exec(no.nodeValue || '');
+  const verbo = m && VERBOS[IDIOMA]?.[m[2]];
+  if (!verbo) return;
+  const novo = `${m[1]}${verbo}${no.nodeValue.slice(m[1].length + m[2].length)}`;
+  no.nodeValue = novo;
+  TRAD.postos.set(no, novo);
+}
+
+function trocarVerbosEm(raiz) {
+  const els = raiz.nodeType === 1 ? [...(raiz.matches(SO_O_VERBO) ? [raiz] : []), ...raiz.querySelectorAll(SO_O_VERBO)] : [];
+  for (const el of els) {
+    if (el.closest(NUNCA)) continue;
+    for (const n of el.childNodes) if (n.nodeType === 3) trocarVerbo(n);
+  }
+}
 
 const localeAtual = () => LOCALES[IDIOMA];
 
@@ -42,7 +66,10 @@ function prepararIdioma(id) {
     }).join('');
     const fixo = pt.replace(/\{\d+\}/g, '').trim();
     if (fixo.length < 2) continue; // "{0}" sozinho não diz nada
-    TRAD.padroes.push({ re: new RegExp(`^${corpo}$`), ordem, traducao, peso: fixo.length });
+    // "{0} pedidos" é contagem: só vale com número (senão "Meus pedidos" viraria "Meus requests").
+    // O gerúndio ("{0} trabalhando") fica de fora: ali vem um nome.
+    const soNumero = /^\{\d+\} [^\s{}]+$/.test(pt) && !/ndo$/.test(pt);
+    TRAD.padroes.push({ re: new RegExp(`^${corpo}$`), ordem, traducao, peso: fixo.length, soNumero });
   }
   TRAD.padroes.sort((a, b) => b.peso - a.peso);
 }
@@ -52,7 +79,7 @@ function traduzirTrecho(s) {
   if (exato != null) return exato;
   for (const p of TRAD.padroes) {
     const m = p.re.exec(s);
-    if (!m) continue;
+    if (!m || (p.soNumero && !/\d/.test(m[1]))) continue;
     const valores = {};
     p.ordem.forEach((n, i) => { const v = m[i + 1]; valores[n] = TRAD.exatos.get(v.trim()) ?? v; });
     return p.traducao.replace(/\{(\d+)\}/g, (_, n) => valores[n] ?? '');
@@ -105,10 +132,15 @@ function trocarAtributos(el) {
 
 function traduzirNo(no) {
   if (no.nodeType === 3) {
-    if (no.parentElement && !no.parentElement.closest(NAO_TRADUZ)) trocarTexto(no);
+    const pai = no.parentElement;
+    if (!pai) return;
+    if (!pai.closest(NAO_TRADUZ)) trocarTexto(no);
+    else if (pai.closest(SO_O_VERBO) && !pai.closest(NUNCA) && TRAD.postos.get(no) !== no.nodeValue) trocarVerbo(no);
     return;
   }
-  if (no.nodeType !== 1 || no.closest(NAO_TRADUZ)) return;
+  if (no.nodeType !== 1) return;
+  trocarVerbosEm(no);
+  if (no.closest(NAO_TRADUZ)) return;
   trocarAtributos(no);
   const andar = document.createTreeWalker(no, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
     acceptNode: (n) => (n.nodeType === 1 && n.matches(NAO_TRADUZ) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),

@@ -22,16 +22,19 @@ function doSistema(locale) {
   return l.startsWith('pt') ? 'pt' : l.startsWith('es') ? 'es' : 'en';
 }
 
+// A última linha de todo prompt, já no idioma da pessoa: escrita nele, a instrução pesa mais do que o resto
+// do prompt em português (sem ela, um modelo menor às vezes responde em português).
+const FECHO = {
+  en: 'Language: the person uses Orbion in English. Write everything they will read in English: the understanding, task titles and descriptions, summaries, questions, handoff notes, flow and block names.',
+  es: 'Idioma: la persona usa Orbion en español. Escribe en español todo lo que va a leer: el entendimiento, los títulos y descripciones de las tareas, los resúmenes, las preguntas, las notas de relevo y los nombres de los flujos y bloques.',
+};
+
 /** Os prompts são escritos em português: no inglês e no espanhol, as respostas vêm no idioma da pessoa. */
 function noIdioma(prompt) {
   if (atual === 'pt' || !prompt) return prompt;
   const nome = NOMES[atual];
-  let trocou = false;
-  const texto = String(prompt).replace(/(Escreva|Responda|escreva|responda) em português( do Brasil)?/g, (_, verbo) => {
-    trocou = true;
-    return `${verbo} em ${nome}`;
-  });
-  return trocou ? texto : `${texto}\n\nEscreva em ${nome} tudo o que a pessoa vai ler (a pessoa usa o Orbion nesse idioma).`;
+  const texto = String(prompt).replace(/(Escreva|Responda|escreva|responda) em português( do Brasil)?/g, (_, verbo) => `${verbo} em ${nome}`);
+  return `${texto}\n\n${FECHO[atual]}`;
 }
 
 /** Um texto do processo principal no idioma da pessoa, pelo dicionário das telas. */
