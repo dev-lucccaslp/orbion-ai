@@ -23,6 +23,9 @@ const assistentes = require('./motor/assistentes');
 const criacao = require('./motor/criacao');
 const gitOps = require('./motor/git');
 const anexos = require('./motor/anexos');
+const fluxosMod = require('./motor/fluxos');
+const idiomaMod = require('./motor/idioma');
+let controleMapa = null;
 
 const controlesConversa = new Map(); // conversa → AbortController
 let controleAssistente = null;
@@ -42,7 +45,9 @@ let proximoTerminal = 1;
 
 const RAIZ = path.join(__dirname, '..');
 const ID_APP = 'ai.orbion.app';
-const ICONE_ICO = path.join(__dirname, 'tela', 'marca', 'orbion.ico');
+// No app instalado, o atalho do menu Iniciar e as notificações do Windows precisam do ícone fora do app.asar
+// (o pacote leva a pasta marca/ também descompactada, em app.asar.unpacked).
+const ICONE_ICO = path.join(__dirname, 'tela', 'marca', 'orbion.ico').replace(`app.asar${path.sep}`, `app.asar.unpacked${path.sep}`);
 const ICONE_PNG = path.join(__dirname, 'tela', 'marca', 'orbion-256.png');
 const ROTAS = {
   tela: path.join(__dirname, 'tela'),
@@ -145,7 +150,8 @@ function lerConfig() {
   const config = {
     comandos: { ...CONFIG_PADRAO.comandos },
     projetos: [],
-    tema: 'orbion.dracula',
+    tema: 'orbion.noite',
+    idioma: idiomaMod.doSistema(app.isReady() ? app.getLocale() : ''), // pt, en ou es; começa pelo do sistema
     temaIcones: null,
     fonte: "'Cascadia Code', Consolas, monospace",
     tamanhoFonte: 14,
@@ -155,6 +161,8 @@ function lerConfig() {
     ...salvo,
   };
   config.comandos = { ...CONFIG_PADRAO.comandos, ...salvo.comandos };
+  // Quem nunca escolheu tema (ficou no antigo padrão, o Dracula) passa para o Orbion Noite.
+  if (!salvo.temaEscolhido && (!salvo.tema || salvo.tema === 'orbion.dracula')) config.tema = 'orbion.noite';
   config.layout = { lateral: 280, painel: 260, painelAberto: true, direita: 400, direitaAberta: true, ...salvo.layout };
   if (!config.temaIcones) {
     // Se a pessoa tiver o Material Icon Theme no VS Code, começa com ele.
@@ -312,13 +320,16 @@ const acoes = {
   'config:salvar': (_e, parcial) => {
     const atual = lerConfig();
     const novo = { ...atual, ...parcial, comandos: { ...atual.comandos, ...parcial.comandos }, layout: { ...atual.layout, ...parcial.layout } };
+    if (parcial.tema && parcial.tema !== atual.tema) novo.temaEscolhido = true;
+    if (!idiomaMod.NOMES[novo.idioma]) novo.idioma = 'pt';
+    idiomaMod.definir(novo.idioma);
     novo.tamanhoFonte = Math.max(9, Math.min(32, Number(novo.tamanhoFonte) || 14));
     return salvarConfig(novo);
   },
   'modelos:listar': () => modelosDisponiveis(),
 
   'projeto:escolher': async () => {
-    const r = await dialog.showOpenDialog(janela, { title: 'Escolha a pasta do projeto', properties: ['openDirectory', 'createDirectory'] });
+    const r = await dialog.showOpenDialog(janela, { title: idiomaMod.traduzir('Escolha a pasta do projeto'), properties: ['openDirectory', 'createDirectory'] });
     if (r.canceled || !r.filePaths[0]) return null;
     const projeto = r.filePaths[0];
     const config = lerConfig();
@@ -441,6 +452,19 @@ const acoes = {
   },
   'conversa:parar': (_e, id) => controlesConversa.get(id)?.abort(),
   'anexo:ler': (_e, projeto, rel) => anexos.dataUrl(projeto, rel),
+  'fluxos:ler': (_e, projeto) => fluxosMod.ler(projeto),
+  'fluxos:posicoes': (_e, projeto, id, posicoes) => fluxosMod.gravarPosicoes(projeto, id, posicoes),
+  'fluxos:mapear': async (_e, projeto) => {
+    controleMapa?.abort();
+    controleMapa = new AbortController();
+    const a = lerConfig().assistente;
+    try {
+      return await assistentes.mapearFluxos({ projeto, motor: a.motor, modelo: a.modelo, comandos: lerConfig().comandos, sinal: controleMapa.signal, aoEvento: (ev) => enviar({ tipo: 'mapa', projeto, ev }) });
+    } finally {
+      controleMapa = null;
+    }
+  },
+  'fluxos:parar': () => controleMapa?.abort(),
   'conversa:excluir': (_e, projeto, id) => conversas.excluir(projeto, id),
   'execucao:excluirFio': (_e, projeto, fio) => excluirFio(projeto, fio, new Set([...execucoes.keys()])),
 
@@ -455,7 +479,7 @@ const acoes = {
   'projeto:modelos': () => criacao.listarModelos(),
   'projeto:pastaPadrao': () => app.getPath('desktop'),
   'projeto:escolherPai': async () => {
-    const r = await dialog.showOpenDialog(janela, { title: 'Onde criar o projeto', properties: ['openDirectory', 'createDirectory'] });
+    const r = await dialog.showOpenDialog(janela, { title: idiomaMod.traduzir('Onde criar o projeto'), properties: ['openDirectory', 'createDirectory'] });
     return r.canceled ? null : r.filePaths[0];
   },
   'projeto:criar': (_e, dados) => {
@@ -504,7 +528,7 @@ const acoes = {
   },
 
   'temas:listar': () => temas.listar(),
-  'temas:cores': (_e, id) => temas.temaCores(id) || temas.temaCores('orbion.dracula'),
+  'temas:cores': (_e, id) => temas.temaCores(id) || temas.temaCores('orbion.noite'),
   'temas:icones': (_e, id) => temas.temaIcones(id) || temas.temaIcones('orbion.minimo'),
   'extensoes:abrirPasta': () => {
     fs.mkdirSync(loja.pastaExtensoes(), { recursive: true });
@@ -528,7 +552,7 @@ const acoes = {
   },
 
   'janela:titulo': (_e, cor, simbolo) => {
-    try { janela.setTitleBarOverlay({ color: cor, symbolColor: simbolo, height: 34 }); } catch {}
+    try { janela.setTitleBarOverlay({ color: cor, symbolColor: simbolo, height: 42 }); } catch {}
   },
   'janela:devtools': () => janela.webContents.toggleDevTools(),
   'janela:recarregar': () => janela.webContents.reload(),
@@ -546,6 +570,8 @@ const acoes = {
       fio: opcoes.fio || null,
       somenteLeitura: !!opcoes.somenteLeitura,
       anexos: anexos.guardar(projeto, opcoes.anexos),
+      fluxoBase: opcoes.fluxoBase || null,
+      blocoBase: opcoes.blocoBase || null,
       config: { comandos: lerConfig().comandos },
       trava: travas.get(projeto),
       perguntar: () => new Promise((resolve) => { item.responder = resolve; }),
@@ -590,11 +616,11 @@ function criarJanela() {
     height: 960,
     minWidth: 1000,
     minHeight: 620,
-    backgroundColor: '#21222C',
+    backgroundColor: '#0B0C0D',
     title: 'Orbion.ai',
     icon: process.platform === 'win32' ? ICONE_ICO : ICONE_PNG,
     titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#21222C', symbolColor: '#F8F8F2', height: 34 },
+    titleBarOverlay: { color: '#0B0C0D', symbolColor: '#ECE8DF', height: 42 }, // os botões do sistema, na cor da moldura
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -617,11 +643,11 @@ function criarJanela() {
     if (!execucoes.size) return;
     const r = dialog.showMessageBoxSync(janela, {
       type: 'warning',
-      buttons: ['Parar e fechar', 'Continuar aberto'],
+      buttons: [idiomaMod.traduzir('Parar e fechar'), idiomaMod.traduzir('Continuar aberto')],
       defaultId: 1,
       cancelId: 1,
-      message: execucoes.size > 1 ? `Tem ${execucoes.size} pedidos rodando.` : 'Tem um pedido rodando.',
-      detail: 'Fechar agora para os agentes no meio do trabalho.',
+      message: execucoes.size > 1 ? idiomaMod.traduzir('Tem {0} pedidos rodando.').replace('{0}', execucoes.size) : idiomaMod.traduzir('Tem um pedido rodando.'),
+      detail: idiomaMod.traduzir('Fechar agora para os agentes no meio do trabalho.'),
     });
     if (r === 1) e.preventDefault();
     else for (const x of execucoes.values()) x.exec.cancelar();
@@ -693,6 +719,7 @@ function notificar(titulo, texto) {
 
 app.whenReady().then(() => {
   protocol.handle('orbion', servir);
+  idiomaMod.definir(lerConfig().idioma);
   registrarNoWindows();
   // Tokens das APIs: criptografados pelo Windows (DPAPI), só abrem neste usuário e neste PC.
   const segura = safeStorage.isEncryptionAvailable();

@@ -7,6 +7,8 @@ const path = require('node:path');
 const { rodarApi } = require('./api');
 const tokens = require('./tokens');
 
+const idioma = require('./idioma');
+
 const SISTEMA_API = (cwd) => `Você é um agente do Orbion.ai trabalhando no projeto da pasta ${cwd}. Use as ferramentas para ler o projeto e, quando tiver permissão, editar arquivos e rodar comandos. Caminhos são relativos à pasta do projeto. Responda em português.`;
 
 const LEITURA = ['Read', 'Glob', 'Grep'];
@@ -204,11 +206,13 @@ function rodarAgente({
   editaArquivos = false, rodaComandos = false, ferramentas = '', esforco = '', argsExtras = '', dirsExtras = [],
   tempoMaxMs = 0, sinal, aoEvento = () => {}, imagens = [],
 }) {
+  // Os prompts são em português; no inglês e no espanhol, a resposta vem no idioma da pessoa.
+  prompt = idioma.noIdioma(prompt);
   if (motor.startsWith('api:')) {
     // Modelo por token: o laço de ferramentas é do próprio Orbion.
     return rodarApi({
       provedor: motor.slice(4), modelo, cwd, prompt, esquema, pasta, editaArquivos, rodaComandos, tempoMaxMs, sinal, aoEvento,
-      sistema: SISTEMA_API(cwd), leituraExtra: dirsExtras, imagens,
+      sistema: idioma.noIdioma(SISTEMA_API(cwd)), leituraExtra: dirsExtras, imagens,
     }).then((r) => ({ saida: r.saida, erro: r.erro, cancelado: r.cancelado, custo: null, tokens: r.tokens || null }));
   }
   fs.mkdirSync(pasta, { recursive: true });

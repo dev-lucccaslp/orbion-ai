@@ -1,13 +1,85 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="src/tela/marca/orbion-logo-fundo-escuro.svg">
-  <img src="src/tela/marca/orbion-logo-fundo-claro.svg" alt="Orbion" height="48">
-</picture>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/tela/marca/orbion-logo-fundo-escuro.svg">
+    <img src="src/tela/marca/orbion-logo-fundo-claro.svg" alt="Orbion.ai" height="64">
+  </picture>
+</p>
 
-# Orbion.ai
+<h3 align="center">Times de IAs trabalhando juntos no teu projeto.</h3>
 
-Editor de código no estilo do Cursor e do VS Code, com vários times de IAs dentro. O editor é o Monaco (o mesmo do VS Code), o terminal é de verdade, e o painel da direita mostra a **Orquestra** (o pedido como uma conversa com o time) e o **Voo** (o que cada IA está fazendo agora). Cada agente roda no **Claude Code** ou no **Codex** que já estão logados neste PC, ou em qualquer modelo por token (Gemini, Grok, OpenRouter, OpenCode, Groq, DeepSeek, Mistral, OpenAI) e em modelos que rodam no teu PC (Ollama, LM Studio), inclusive os grátis.
+<p align="center">
+  Um editor de código onde o Claude Code, o Codex e modelos por API se organizam em times:<br>
+  um recebe o pedido e monta o plano, outros fazem, outros conferem, e tu acompanha tudo ao vivo.
+</p>
 
-## Como abrir
+<p align="center">
+  <img alt="Versão 0.1.0" src="https://img.shields.io/badge/vers%C3%A3o-0.1.0-4C6BFF">
+  <img alt="Windows, macOS e Linux" src="https://img.shields.io/badge/Windows%20%C2%B7%20macOS%20%C2%B7%20Linux-desktop-1d1d1f">
+  <img alt="Português, English, Español" src="https://img.shields.io/badge/idiomas-pt%20%C2%B7%20en%20%C2%B7%20es-2ea44f">
+  <img alt="Electron 44" src="https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white">
+</p>
+
+<p align="center">
+  <img src="docs/imagens/fluxos-ao-vivo.png" alt="O fluxo de um pedido ao vivo: o bloco em que o Dev está mexendo acende, e o painel ao lado mostra os detalhes do bloco" width="920">
+</p>
+
+## Baixar
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="docs/imagens/windows.svg" height="64" alt="Windows"><br>
+      <b>Windows</b><br>
+      Windows 10 e 11 · 64 bits<br>
+      <sub>versão 0.1.0</sub><br><br>
+      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-windows-x64.exe"><b>Baixar o instalador</b></a><br>
+      <sub><code>.exe</code></sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="docs/imagens/macos.svg" height="64" alt="macOS"><br>
+      <b>macOS</b><br>
+      Apple Silicon (M1 ou mais novo)<br>
+      <sub>versão 0.1.0</sub><br><br>
+      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-mac-arm64.dmg"><b>Baixar o app</b></a><br>
+      <sub><code>.dmg</code></sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.16.0/icons/linux/linux-original.svg" height="64" alt="Linux"><br>
+      <b>Linux</b><br>
+      Ubuntu, Debian, Fedora e outros · 64 bits<br>
+      <sub>versão 0.1.0</sub><br><br>
+      <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.AppImage"><b>Baixar o AppImage</b></a><br>
+      <sub>ou o <a href="https://github.com/dev-lucccaslp/orbion-ai/releases/latest/download/Orbion.ai-linux-x64.deb"><code>.deb</code></a> para Ubuntu e Debian</sub>
+    </td>
+  </tr>
+</table>
+
+<sub>Todas as versões ficam em <a href="https://github.com/dev-lucccaslp/orbion-ai/releases">Releases</a>.</sub>
+
+**Antes de abrir**, deixe pelo menos um motor pronto: o [Claude Code](https://docs.anthropic.com/claude-code) ou o [Codex](https://github.com/openai/codex) instalado e logado (o Orbion usa a tua assinatura, sem chave de API), ou um provedor por token em **Contas e modelos**.
+
+<details>
+<summary><b>Primeira abertura</b> (o instalador ainda não tem assinatura digital)</summary>
+
+- **Windows**: se aparecer "O Windows protegeu o computador", clique em **Mais informações → Executar assim mesmo**.
+- **macOS**: arraste o Orbion.ai para Aplicativos. Na primeira vez, clique com o botão direito no app → **Abrir** → **Abrir**. Se o macOS disser que o app "está danificado", rode `xattr -cr /Applications/Orbion.ai.app` no Terminal.
+- **Linux**: no AppImage, `chmod +x Orbion.ai-linux-x64.AppImage` e abra. No `.deb`, `sudo apt install ./Orbion.ai-linux-x64.deb`.
+
+</details>
+
+## O que ele faz
+
+- **Times em órbita**: o Orbion no centro e um anel por etapa. O Receptor recebe o pedido e monta o plano, os executores (PO, Designer, Dev, DBA...) fazem, e os verificadores (Tester, Revisor) conferem e devolvem se precisar.
+- **Fluxos do projeto, ao vivo**: cada funcionalidade vira um fluxo no estilo do n8n (tela → rota → tratamento → banco). Enquanto o time trabalha, o bloco em que cada agente mexe acende; depois, um clique no bloco pede uma mudança só nele.
+- **Qualquer modelo de IA**: Claude Code e Codex com a tua assinatura, modelos por token (Gemini, Grok, OpenRouter, OpenCode, Groq, DeepSeek, Mistral, OpenAI) e modelos que rodam no teu PC (Ollama, LM Studio), inclusive os grátis. Cada agente já vem com um que existe na tua máquina.
+- **Um editor de verdade**: o Monaco (o mesmo do VS Code), terminal integrado, git com commit e push, prévia das telas que os agentes constroem, e uma Conversa para pensar antes de pedir.
+- **Em português, inglês e espanhol**, com cara de Mac.
+
+<p align="center">
+  <img src="docs/imagens/montar-time.png" alt="Montar o time: cada agente com o modelo de IA detectado neste PC, e a órbita mostrando quem recebe, quem faz e quem confere" width="920">
+</p>
+
+## Rodar pelo código
 
 Dois cliques em `Orbion.ai.cmd`, ou no terminal:
 
@@ -17,10 +89,17 @@ npm start
 
 Na primeira vez, rode `npm install` nesta pasta.
 
+### Publicar uma versão
+
+- `npm run dist` gera, em `dist/`, o instalador do sistema em que tu está.
+- Para os três sistemas de uma vez: aumente a `version` no `package.json` e suba uma tag com o mesmo número (`git tag v0.1.1` e `git push origin v0.1.1`). O GitHub Actions ([release.yml](.github/workflows/release.yml)) monta os instaladores no Windows, no macOS e no Linux e publica tudo em Releases. Os arquivos têm sempre o mesmo nome, então os links de **Baixar** apontam sozinhos para a versão nova; só troque o número da versão no topo deste README.
+- Enquanto o repositório for privado, só quem tem acesso a ele consegue baixar.
+
 ## A tela
 
-- **Topo**: menus (Arquivo, Editar, Seleção, Ver, Ir, Terminal, Time, Ajuda), a busca (Ctrl+P para arquivos, Ctrl+Shift+P para comandos) e os botões que mostram ou escondem os painéis.
-- **Esquerda**: Explorador (com os ícones do tema escolhido), Times, Mudanças (git), Extensões (temas e skills) e, embaixo, Contas e modelos.
+- **Visual**: com cara de Mac. A janela é uma moldura e os painéis (barra lateral, editor, Orquestra) flutuam nela como cartões arredondados; menus e avisos são translúcidos e a paleta de comandos lembra o Spotlight. O tema padrão é o **Orbion Noite**.
+- **Topo**: o nome do app e os menus (Arquivo, Editar, Seleção, Ver, Ir, Terminal, Time, Ajuda), a busca (Ctrl+P para arquivos, Ctrl+Shift+P para comandos), os botões que mostram ou escondem os painéis, Contas e modelos e Configurações.
+- **Esquerda**: no topo, o seletor de vistas: Explorador (com os ícones do tema escolhido), Times, Mudanças (git), Fluxos e Extensões (temas e skills).
 - **Centro**: o editor, com abas, realce de sintaxe, minimapa, Ctrl+S e comparação de mudanças.
 - **Embaixo**: o **Terminal** (PowerShell, Git Bash ou Prompt de Comando, vários ao mesmo tempo, começando na pasta do projeto) e o **Ao vivo** (o log de cada agente).
 - **Direita**: a **Orquestra**, a **Conversa** e o **Voo**.
@@ -49,6 +128,8 @@ Na primeira vez, rode `npm install` nesta pasta.
 ## Times e agentes
 
 - **Criar time** (vista Times → +, ou menu Time): a partir dos modelos de agente, só com o Receptor, ou copiando um time deste ou de outro projeto. Cada time tem nome, cor e descrição.
+- **O modelo de IA de cada agente** já vem do que existe neste PC: o Orbion vê se o Claude Code e o Codex estão instalados e logados e quais provedores por API têm token. Se o modelo padrão de um agente não existir aqui (o Tester usa Codex, por exemplo), ele troca sozinho pelo que funciona e marca **auto**. Clique no modelo do card para trocar, ou em **Mesmo modelo para todos**.
+- **A órbita**: o Orbion no centro e um anel por etapa: no 1º, quem recebe o pedido (Receptor); no 2º, quem faz (executores); no 3º, quem confere (verificadores).
 - **Modelos de agente**: Receptor, PO, Designer, Dev, Tester, DBA, Engenheiro, Revisor e Documentador, ou em branco.
 - **Editar um agente**: tu muda tudo nele.
   - Identidade: nome, cor, ícone, ordem, ligado ou desligado, e a descrição.
@@ -109,6 +190,22 @@ Quando um agente cria ou muda algo que se vê, a tela que ele construiu abre num
 - **Novo projeto** (menu Arquivo): nome, pasta, descrição e um começo (vazio, Node.js, site estático ou Python), com git e o time padrão. Depois de criar, o time monta o começo, ou tu conversa antes no grill-me.
 - **Descobrir** (menu Ajuda): as skills do Orbion e as tuas, e ideias da comunidade do claudemod.com (skills, mods, servidores MCP), com link para cada categoria.
 
+## Fluxos do projeto
+
+Por onde cada funcionalidade passa (tela → rota → tratamento dos dados → banco → volta), desenhado em blocos ligados, no estilo do n8n. Abre pela vista **Fluxos**, por Ver → Fluxos do projeto ou Ctrl+Shift+F.
+- **Ao abrir um projeto pela primeira vez**, uma IA lê o projeto (gastando pouco: procura rotas, telas e tabelas, sem ler tudo) e monta os fluxos principais. Dá para desligar em Configurações e refazer pelo botão de mapear.
+- **Em cada pedido de mudança**, o Receptor desenha o fluxo no plano e diz quais blocos cada tarefa faz; os agentes devolvem no passe os blocos que fizeram, com os arquivos de verdade. A aba abre sozinha quando o plano chega.
+- **Ao vivo**: o bloco em que um agente está mexendo pulsa com o nome dele e as ligações correm; o que ficou pronto ganha um check, e o que ainda é só plano fica tracejado.
+- **Clicar num bloco** mostra o que ele faz, os arquivos (abrem no editor), as ligações, as tarefas do pedido e, se for uma tela, **Ver a tela**. Quando o time termina, **Pedir mudança** ali manda um pedido novo só sobre aquele bloco, com o fluxo inteiro de contexto, para quem fez o bloco ou para o Receptor.
+- **Arrumar**: arraste os blocos (a posição fica salva), roda do mouse para zoom, duplo clique para enquadrar tudo.
+
+## Idiomas
+
+O Orbion fala **português, inglês e espanhol** (Configurações → Aparência → Idioma, ou Ver → Idioma…). Começa no idioma do sistema.
+- A interface troca toda, inclusive menus, avisos e diálogos do Windows. Código, arquivos, terminal e o que as IAs escrevem ficam como estão.
+- Os agentes, a Conversa e o mapa dos fluxos passam a responder no idioma escolhido, inclusive com os prompts que tu editou.
+- As traduções ficam em `src/tela/i18n/en.js` e `es.js`: a chave é o texto em português, o valor é a tradução.
+
 ## Temas e extensões
 
 - O app lê os temas de cores e de ícones das extensões do VS Code e do Cursor instaladas neste PC (Dracula, Material Icon Theme...). Também vêm três temas próprios: Dracula, Orbion Noite e Orbion Dia.
@@ -119,12 +216,13 @@ Quando um agente cria ou muda algo que se vê, a tela que ele construiu abre num
 - `<projeto>/.orbion/times/<time>/time.json` e `agentes/*.md`: os times e os agentes.
 - `<projeto>/.orbion/prompts/`: os modelos de prompt personalizados.
 - `<projeto>/.orbion/memoria.md`: a memória do projeto.
+- `<projeto>/.orbion/fluxos.json`: os fluxos do projeto (blocos, ligações, onde tu arrumou cada bloco).
 - `<projeto>/.orbion/config.json`: o fluxo (aprovação, paralelo, memória, voltas, tempo, tarefas por plano).
 - `<projeto>/.orbion/execucoes/<data>/`: o registro de cada pedido. Para cada agente, ficam o prompt que ele recebeu, o comando exato e a resposta.
 - `<projeto>/.orbion/conversas/`: as conversas. `<projeto>/.orbion/melhorias.json`: a última análise de melhorias.
 - `<projeto>/.claude/skills/` e `~/.orbion/skills/`: as skills que tu cria.
 - `~/.orbion/extensoes/`: as extensões instaladas pelo app.
-- `%APPDATA%\Orbion.ai\config.json`: projetos recentes, tema, fonte, terminal padrão, layout e quem responde as conversas.
+- `%APPDATA%\Orbion.ai\config.json`: projetos recentes, idioma, tema, fonte, terminal padrão, layout e quem responde as conversas.
 - `%APPDATA%\Orbion.ai\provedores.json`: os provedores por token, com o token criptografado. O token também pode vir de uma variável de ambiente `ORBION_CHAVE_<ID>` (ex.: `ORBION_CHAVE_OPENROUTER`).
 
 ## Atalhos

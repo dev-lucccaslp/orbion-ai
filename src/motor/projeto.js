@@ -12,6 +12,7 @@ const PADRAO = {
   pedidosAnteriores: 3,
   paralelo: true,
   memoria: true,
+  mapearFluxos: true, // ao abrir o projeto pela primeira vez, a IA monta os fluxos dele
 };
 
 const arquivoConfig = (projeto) => path.join(projeto, '.orbion', 'config.json');
@@ -41,6 +42,7 @@ function salvarConfig(projeto, parcial) {
     aprovarPlano: parcial.aprovarPlano ?? atual.aprovarPlano,
     paralelo: parcial.paralelo ?? atual.paralelo,
     memoria: parcial.memoria ?? atual.memoria,
+    mapearFluxos: parcial.mapearFluxos ?? atual.mapearFluxos,
   };
   fs.mkdirSync(path.dirname(arquivoConfig(projeto)), { recursive: true });
   fs.writeFileSync(arquivoConfig(projeto), JSON.stringify(novo, null, 2));

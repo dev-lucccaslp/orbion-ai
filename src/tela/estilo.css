@@ -554,3 +554,6 @@ textarea { resize: vertical; line-height: 1.5; }
   .orq-topo { grid-template-columns: 220px minmax(0, 1fr); }
   .grade-papeis { grid-template-columns: 1fr; }
 }
+
+/* O minimapa do editor é transparente onde não há desenho: sem fundo, o fim das linhas longas aparece por baixo. */
+.monaco-editor .minimap { background: var(--fundo); }

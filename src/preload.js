@@ -20,7 +20,7 @@ const CANAIS = [
   'skill:ler', 'skill:salvar', 'skill:escrever',
   'provedores:presets', 'provedores:listar', 'provedores:salvar', 'provedores:remover', 'provedores:modelos',
   'contas:situacao', 'contas:instalar',
-  'conversa:listar', 'conversa:ler', 'conversa:criar', 'conversa:configurar', 'conversa:enviar', 'conversa:parar', 'conversa:excluir', 'anexo:ler', 'execucao:excluirFio',
+  'conversa:listar', 'conversa:ler', 'conversa:criar', 'conversa:configurar', 'conversa:enviar', 'conversa:parar', 'conversa:excluir', 'anexo:ler', 'fluxos:ler', 'fluxos:posicoes', 'fluxos:mapear', 'fluxos:parar', 'execucao:excluirFio',
   'melhorias:rodar', 'melhorias:ultimas', 'assistente:parar',
   'projeto:modelos', 'projeto:pastaPadrao', 'projeto:escolherPai', 'projeto:criar',
 ];

@@ -6,6 +6,8 @@ const path = require('node:path');
 const { rodarAgente } = require('./executor');
 const { lerSkill } = require('./skills');
 const projetoCfg = require('./projeto');
+const fluxosMod = require('./fluxos');
+const { secaoProjetos } = require('./prompts');
 
 const MELHORIAS = {
   type: 'object',
@@ -117,4 +119,28 @@ async function mensagemDeCommit({ projeto, diff, motor = 'claude', modelo = '', 
   return String(r.saida?.mensagem || '').trim();
 }
 
-module.exports = { sugerirMelhorias, ultimasMelhorias, escreverSkill, mensagemDeCommit };
+/** Monta os fluxos principais do projeto (o mapa no estilo do n8n), lendo só o que precisa. */
+async function mapearFluxos({ projeto, motor = 'claude', modelo = '', comandos, sinal, aoEvento }) {
+  const memoria = projetoCfg.lerMemoria(projeto);
+  const prompt = [
+    'Desenhe os fluxos principais deste projeto, como num editor de fluxos do n8n.',
+    'Para cada funcionalidade importante (login, cadastro, pedido, relatório, integração, rotina agendada, atendimento da IA...), diga por onde ela passa de ponta a ponta: tela → rota → tratamento dos dados → banco → resposta → tela, com os nomes reais (rota, tabela, função) e os arquivos onde cada bloco está.',
+    '# Regras',
+    '- Gaste pouco: use Glob e Grep para achar rotas, telas, tabelas, filas e integrações, e leia só os trechos que precisar. Não leia arquivos grandes inteiros.',
+    '- No máximo 10 fluxos, com até 14 blocos cada. Comece pelos que mais importam para quem usa o sistema.',
+    '- Ids curtos e estáveis (ex.: tela-login, post-api-login, tabela-usuarios). Os arquivos são relativos à pasta do projeto.',
+    '- Não altere nada.',
+    `# Projeto\nPasta: ${projeto}`,
+    secaoProjetos(projeto),
+    memoria ? `# Memória do projeto\n${memoria}` : '',
+    '# Como responder\nEntregue no formato pedido: um resumo de como o projeto está organizado e os fluxos. Escreva em português.',
+  ].filter(Boolean).join('\n\n');
+  const r = await rodarAgente({
+    motor, modelo, comando: comandos[motor] || comandos.claude, cwd: projeto, prompt, esquema: fluxosMod.MAPA,
+    pasta: pastaTrabalho(projeto, 'fluxos'), editaArquivos: false, rodaComandos: false, sinal, aoEvento,
+  });
+  if (r.erro) throw new Error(r.erro);
+  return fluxosMod.gravarMapa(projeto, r.saida || {});
+}
+
+module.exports = { sugerirMelhorias, ultimasMelhorias, escreverSkill, mensagemDeCommit, mapearFluxos };

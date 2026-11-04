@@ -2,10 +2,12 @@
 // Os dois seguem as regras do modo estrito do Codex (todo campo obrigatório,
 // sem campos extras), que o Claude também aceita.
 
+const { FLUXO, FLUXO_DO_PASSE } = require('./fluxos');
+
 const PLANO = {
   type: 'object',
   additionalProperties: false,
-  required: ['tipo', 'entendimento', 'tarefas'],
+  required: ['tipo', 'entendimento', 'tarefas', 'fluxo'],
   properties: {
     tipo: {
       type: 'string',
@@ -21,7 +23,7 @@ const PLANO = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['id', 'agente', 'titulo', 'descricao', 'criterio_pronto', 'depende_de'],
+        required: ['id', 'agente', 'titulo', 'descricao', 'criterio_pronto', 'depende_de', 'blocos'],
         properties: {
           id: { type: 'string', description: 't1, t2, t3...' },
           agente: { type: 'string', description: 'id de um dos agentes disponíveis' },
@@ -29,16 +31,18 @@ const PLANO = {
           descricao: { type: 'string' },
           criterio_pronto: { type: 'string' },
           depende_de: { type: 'array', items: { type: 'string' } },
+          blocos: { type: 'array', items: { type: 'string' }, description: 'ids dos blocos do fluxo que esta tarefa faz ou muda. [] se nenhum.' },
         },
       },
     },
+    fluxo: { ...FLUXO, description: 'Numa mudança: como a funcionalidade vai funcionar de ponta a ponta, em blocos e ligações (tela → rota → tratamento → banco → volta). Em pergunta e verificação: nome "" e listas vazias.' },
   },
 };
 
 const PASSE = {
   type: 'object',
   additionalProperties: false,
-  required: ['status', 'resumo', 'arquivos', 'recado_para_proximo', 'pergunta', 'aprendizados', 'previa'],
+  required: ['status', 'resumo', 'arquivos', 'recado_para_proximo', 'pergunta', 'aprendizados', 'previa', 'fluxo'],
   properties: {
     status: { type: 'string', enum: ['concluida', 'falhou', 'bloqueada'] },
     resumo: { type: 'string', description: 'Markdown curto: a conclusão em uma ou duas frases primeiro; depois listas, tabelas e blocos de código só se precisar.' },
@@ -54,6 +58,7 @@ const PASSE = {
       type: 'string',
       description: 'Se você criou ou mudou algo que se vê (página, tela, componente): o .html relativo ao projeto que mostra o resultado, ou o endereço http://localhost:PORTA de um servidor que já esteja rodando. "" se não tiver nada para ver.',
     },
+    fluxo: FLUXO_DO_PASSE,
   },
 };
 

@@ -92,7 +92,7 @@ function desenharStatus() {
   }
   if (S.uso.codex) {
     const n = (S.uso.codex.input_tokens || 0) + (S.uso.codex.output_tokens || 0);
-    direita.push(h('span', { class: 'status-item', title: 'Tokens da última chamada ao Codex' }, ic('zap'), `Codex ${n.toLocaleString('pt-BR')}`));
+    direita.push(h('span', { class: 'status-item', title: 'Tokens da última chamada ao Codex' }, ic('zap'), `Codex ${n.toLocaleString(localeAtual())}`));
   }
   direita.push(h('button', { class: 'status-item', title: 'Trocar tema de cores', onclick: escolherTema }, ic('symbol-color'), S.tema?.name || 'Tema'));
   direita.push(h('button', { class: 'status-item', title: 'Trocar tema de ícones', onclick: escolherIcones }, ic('file-media')));
@@ -268,6 +268,7 @@ async function abrirProjeto(caminho) {
   } else if (!abaAtiva()) mostrarAba();
   desenharLateral();
   desenharDireita();
+  iniciarFluxosDoProjeto();
 }
 
 async function recarregarProjeto() {
@@ -335,6 +336,7 @@ document.addEventListener('keydown', (e) => {
     const vistas = { e: 'explorador', g: 'mudancas', x: 'extensoes', t: 'times' };
     if (vistas[k]) { parar(); return mudarVista(vistas[k]); }
     if (k === 'v') { parar(); return abrirDireita('voo'); }
+    if (k === 'f' && S.projeto) { parar(); if (S.vista !== 'fluxos' || $('#lateral').hidden) mudarVista('fluxos'); return abrirFluxo(); }
     if (k === 'p') { parar(); return abrirComandos(); }
     if (k === 'i') { parar(); return api('janela:devtools'); }
   }
@@ -365,6 +367,8 @@ document.addEventListener('keydown', (e) => {
 /* ---------- ligações fixas ---------- */
 
 for (const b of document.querySelectorAll('#atividades [data-vista]')) b.addEventListener('click', () => mudarVista(b.dataset.vista));
+// O botão dos fluxos também abre a tela deles, que é onde o fluxo se vê.
+$('#atividades [data-vista="fluxos"]').addEventListener('click', () => { if (S.projeto && !$('#lateral').hidden) abrirFluxo(); });
 for (const b of document.querySelectorAll('.painel-aba')) b.addEventListener('click', () => abrirPainelEm(b.dataset.painel));
 for (const b of document.querySelectorAll('.direita-aba')) b.addEventListener('click', () => abrirDireita(b.dataset.direita));
 $('#bt-config').addEventListener('click', abrirConfig);
@@ -380,6 +384,8 @@ aoEvento((ev) => {
   if (ev.tipo === 'terminal' || ev.tipo === 'terminal-fim') return eventoTerminal(ev);
   if (ev.tipo === 'conversa') return eventoConversa(ev.ev);
   if (ev.tipo === 'assistente') return eventoAssistente(ev.ev);
+  if (ev.tipo === 'mapa') return eventoMapa(ev);
+  eventoParaFluxo(ev);
   return tratarEventoExecucao(ev);
 });
 
@@ -389,6 +395,8 @@ window.addEventListener('beforeunload', (e) => {
 
 (async function iniciar() {
   S.config = await api('config:ler');
+  prepararIdioma(S.config.idioma); // antes de desenhar: o que aparecer já sai no idioma
+  ligarTraducao();
   try { S.soValidar = !!localStorage.getItem('orbion:soValidar'); } catch {}
   const [modelos, listaTemas, tema, icones] = await Promise.all([
     api('modelos:listar'), api('temas:listar'), api('temas:cores', S.config.tema), api('temas:icones', S.config.temaIcones),

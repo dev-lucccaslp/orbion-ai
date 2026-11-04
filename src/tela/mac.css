@@ -1,0 +1,307 @@
+/* Orbion.ai com cara de Mac: a janela é uma moldura escura e os painéis flutuam nela como cartões
+   arredondados (barra lateral, editor e Orquestra), com a barra de título unificada (os botões da
+   janela são os do sistema), seletores segmentados no lugar das abas em maiúsculas, menus translúcidos e avisos
+   no canto de cima. As cores continuam vindo do tema; aqui é só a forma. */
+
+:root {
+  --fonte: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --fonte-titulo: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --raio: 9px;
+  --raio-cartao: 12px;
+  --moldura: var(--titulo);
+  --cartao-borda: color-mix(in srgb, var(--texto) 9%, transparent);
+  --linha-fina: color-mix(in srgb, var(--texto) 8%, transparent);
+  --realce: color-mix(in srgb, var(--texto) 7%, transparent);
+  --realce-forte: color-mix(in srgb, var(--texto) 12%, transparent);
+  --sombra-cartao: 0 1px 2px rgba(0, 0, 0, 0.28), 0 6px 18px rgba(0, 0, 0, 0.18);
+  --sombra-flutuante: 0 18px 50px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --vidro: color-mix(in srgb, var(--widget) 78%, transparent);
+  --anel-foco: 0 0 0 3px color-mix(in srgb, var(--foco) 34%, transparent);
+}
+:root[data-claro="sim"] {
+  --sombra-cartao: 0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.08), 0 6px 16px rgba(0, 0, 0, 0.05);
+  --sombra-flutuante: 0 16px 44px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.12);
+  --cartao-borda: color-mix(in srgb, var(--texto) 11%, transparent);
+}
+
+body {
+  grid-template-rows: 42px minmax(0, 1fr) 26px;
+  background: var(--moldura);
+  font-size: 13px;
+  letter-spacing: -0.005em;
+}
+
+/* ---------- rolagem fina, como no Mac ---------- */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { border-radius: 9px; border: 2px solid transparent; background-clip: padding-box; background-color: color-mix(in srgb, var(--texto) 20%, transparent); }
+::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--texto) 34%, transparent); }
+:focus-visible { outline: 2px solid color-mix(in srgb, var(--foco) 65%, transparent); outline-offset: 1px; border-radius: 6px; }
+
+/* ---------- barra de título unificada ---------- */
+.titulo {
+  grid-template-columns: max-content minmax(140px, 1fr) max-content;
+  column-gap: 14px;
+  background: transparent;
+  border-bottom: 0;
+  padding: 0;
+}
+.titulo-esquerda { display: flex; align-items: center; padding-left: 14px; }
+.titulo-busca { justify-self: center; width: 100%; max-width: 460px; }
+.marca-simbolo { width: 16px; height: 16px; margin-right: 7px; }
+.titulo-app { font-family: var(--fonte-titulo); font-weight: 700; font-size: 13px; margin-right: 6px; white-space: nowrap; }
+.menus { margin-left: 0; }
+.menu-topo { padding: 3px 9px; border-radius: 6px; font-size: 13px; }
+.menu-topo:hover, .menu-topo.aberto { background: var(--realce-forte); }
+.titulo-busca {
+  height: 28px; border: 0; border-radius: 8px; gap: 7px;
+  background: var(--realce); color: var(--mudo); font-size: 12.5px;
+  box-shadow: inset 0 0 0 0.5px var(--linha-fina);
+}
+.titulo-busca:hover { background: var(--realce-forte); color: var(--texto); }
+.titulo-direita { display: flex; align-items: center; justify-content: flex-end; gap: 2px; -webkit-app-region: no-drag; }
+.titulo-direita .bt-icone { width: 28px; height: 28px; border-radius: 7px; color: var(--mudo); }
+.titulo-direita .bt-icone:hover { color: var(--texto); background: var(--realce-forte); }
+.titulo-direita .bt-icone .codicon { font-size: 16px; }
+.titulo-sep { width: 1px; height: 16px; margin: 0 6px; background: var(--linha-fina); }
+/* O lugar dos botões de fechar, minimizar e maximizar do sistema. */
+.titulo-sobra { flex: none; align-self: stretch; width: calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, calc(100vw - 138px))); }
+
+/* ---------- os cartões sobre a moldura ---------- */
+.janela { padding: 0 8px 0 8px; }
+.lateral, .area, .direita {
+  border-radius: var(--raio-cartao);
+  border: 1px solid var(--cartao-borda);
+  box-shadow: var(--sombra-cartao);
+  overflow: hidden;
+}
+.lateral { background: var(--lateral); }
+.area { background: var(--fundo); }
+.direita { background: var(--lateral); border-left: 1px solid var(--cartao-borda); }
+.divisor-v { flex: 0 0 8px; margin: 0; background: transparent !important; position: relative; }
+.divisor-v::after { content: ""; position: absolute; left: 3px; right: 3px; top: 40%; bottom: 40%; border-radius: 2px; background: transparent; transition: background 0.15s; }
+.divisor-v:hover::after, .divisor-v.arrastando::after { background: color-mix(in srgb, var(--texto) 28%, transparent); }
+
+/* ---------- seletor de vistas no topo da barra lateral (no lugar da barra de ícones) ---------- */
+.lateral .atividades {
+  flex-direction: row; width: auto; flex: none; gap: 2px;
+  margin: 10px 10px 4px; padding: 2px; border: 0; border-radius: 9px;
+  background: var(--realce);
+  box-shadow: inset 0 0 0 0.5px var(--linha-fina);
+}
+.lateral .atividades button { flex: 1; width: auto; height: 28px; border-radius: 7px; color: var(--mudo); transition: background 0.12s, color 0.12s; }
+.lateral .atividades button .codicon { font-size: 16px; }
+.lateral .atividades button:hover { color: var(--texto); }
+.lateral .atividades button.ativa {
+  color: var(--texto); background: color-mix(in srgb, var(--texto) 13%, var(--lateral));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), inset 0 0.5px 0 color-mix(in srgb, #fff 10%, transparent);
+}
+.lateral .atividades button.ativa::before { display: none; }
+.lateral .atividades .selo { right: 3px; top: 1px; bottom: auto; min-width: 14px; height: 14px; line-height: 14px; font-size: 8.5px; padding: 0 3px; }
+.lateral .atividades .selo:empty { min-width: 7px; width: 7px; height: 7px; right: 7px; top: 5px; padding: 0; }
+
+/* ---------- barra lateral no estilo Finder ---------- */
+.lateral-topo { height: 32px; padding: 0 8px 0 16px; }
+.lateral-topo h2 { font-family: var(--fonte-titulo); font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--texto); }
+.secao + .secao { border-top: 0; margin-top: 6px; }
+.secao-topo {
+  height: 24px; padding: 0 8px 0 10px; background: transparent;
+  color: var(--mudo); font-size: 11.5px; font-weight: 600; text-transform: none; letter-spacing: 0;
+}
+.secao-topo > .codicon { font-size: 12px; opacity: 0; transition: opacity 0.12s; order: 2; margin-left: 2px; }
+.secao-topo:hover > .codicon, .secao.fechada .secao-topo > .codicon { opacity: 1; }
+.secao-titulo { order: 1; flex: 0 1 auto; }
+.secao-topo .contador { order: 3; margin-left: 6px; }
+.secao-acoes { order: 4; margin-left: auto; }
+.contador { background: var(--realce-forte); color: var(--mudo); font-weight: 600; }
+.item-arvore {
+  height: 26px; margin: 0 8px; padding: 0 8px; gap: 6px;
+  border: 0; border-radius: 6px;
+}
+.item-arvore:hover { background: var(--realce); }
+.item-arvore.selecionado { background: var(--realce-forte); color: var(--texto); }
+.lateral:focus-within .item-arvore.selecionado { background: color-mix(in srgb, var(--foco) 24%, transparent); border-color: transparent; }
+.guia { background: none; flex-basis: 10px; }
+.lateral-vazia, .lateral-texto { padding-left: 18px; padding-right: 18px; }
+
+/* ---------- abas como no Safari ---------- */
+.abas { height: 40px; padding: 6px 8px; gap: 4px; background: transparent; border-bottom: 1px solid var(--linha-fina); align-items: center; }
+.abas::-webkit-scrollbar { height: 0; }
+.aba {
+  height: 28px; padding: 0 4px 0 11px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--mudo); transition: background 0.12s, color 0.12s;
+}
+.aba:hover { background: var(--realce); color: var(--texto); }
+.aba.ativa { background: var(--realce-forte); color: var(--texto); box-shadow: inset 0 0 0 0.5px var(--linha-fina); }
+.aba-fechar { width: 18px; height: 18px; border-radius: 5px; }
+.aba-fechar:hover { background: var(--realce-forte); }
+.migalhas { height: 26px; padding: 0 16px; background: transparent; font-size: 11.5px; }
+
+/* ---------- painel de baixo e painel direito: seletores segmentados ---------- */
+.painel { border-top: 1px solid var(--linha-fina); background: var(--painel); }
+.painel-topo { height: 38px; gap: 4px; padding: 0 8px 0 10px; }
+.painel-aba {
+  height: 26px; padding: 0 11px; border-radius: 7px; border: 0;
+  font-size: 12px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--mudo);
+}
+.painel-aba:hover { background: var(--realce); }
+.painel-aba.ativa { background: var(--realce-forte); color: var(--texto); }
+.direita-topo { height: 44px; padding: 0 8px; gap: 2px; border-bottom: 1px solid var(--linha-fina); }
+.direita-aba {
+  height: 28px; padding: 0 11px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500; text-transform: none; letter-spacing: 0;
+}
+.direita-aba:hover { background: var(--realce); }
+.direita-aba.ativa { background: var(--realce-forte); box-shadow: inset 0 0 0 0.5px var(--linha-fina); }
+
+/* ---------- barra de status: discreta, na moldura ---------- */
+.status { background: transparent; border-top: 0; color: var(--mudo); padding: 0 10px; font-size: 11.5px; align-items: center; }
+.status-lado { align-items: center; gap: 2px; }
+.status-item { height: 20px; padding: 0 8px; border-radius: 6px; }
+button.status-item:hover { background: var(--realce-forte); color: var(--texto); }
+.status-time { background: var(--realce); color: var(--texto); }
+.status-time.ativo { background: color-mix(in srgb, var(--botao) 85%, transparent); color: var(--botao-texto); }
+
+/* ---------- botões e campos ---------- */
+.bt {
+  height: 28px; padding: 0 13px; border-radius: 7px;
+  border: 0.5px solid var(--cartao-borda);
+  background: color-mix(in srgb, var(--texto) 10%, transparent);
+  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.2), inset 0 0.5px 0 color-mix(in srgb, #fff 8%, transparent);
+  font-weight: 500;
+}
+.bt:hover { filter: none; background: color-mix(in srgb, var(--texto) 15%, transparent); }
+.bt-principal {
+  border-color: transparent;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--botao) 100%, #fff 8%), var(--botao));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0.5px 0 color-mix(in srgb, #fff 25%, transparent);
+}
+.bt-principal:hover { background: var(--botao-hover); }
+.bt-perigo { background: transparent; box-shadow: none; }
+.bt-mini { border-radius: 6px; padding: 2px 9px; }
+.bt-icone { border-radius: 7px; }
+.bt-icone:hover { background: var(--realce-forte); }
+input, select, textarea {
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--texto) 13%, transparent);
+  background: color-mix(in srgb, var(--entrada) 88%, var(--texto) 4%);
+  padding: 5px 8px;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: color-mix(in srgb, var(--foco) 70%, transparent); box-shadow: var(--anel-foco); }
+select { height: 28px; padding: 0 6px; }
+kbd { border-radius: 5px; border-bottom-width: 1px; background: var(--realce); border-color: var(--linha-fina); }
+
+/* ---------- páginas: grupos como os Ajustes do Mac ---------- */
+.pagina h1 { font-weight: 700; letter-spacing: -0.01em; }
+.grupo {
+  padding: 14px 18px 16px;
+  border-radius: var(--raio-cartao);
+  background: color-mix(in srgb, var(--texto) 3.5%, transparent);
+  border: 1px solid var(--linha-fina);
+}
+.grupo > h2 { padding-bottom: 0; border-bottom: 0; font-size: 13px; font-weight: 700; }
+.lista-skills { border-radius: 8px; }
+
+/* ---------- menus, paleta e avisos translúcidos ---------- */
+.menu, .popover {
+  border-radius: 11px; padding: 5px;
+  background: var(--vidro);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  backdrop-filter: blur(28px) saturate(1.6);
+  border: 0.5px solid color-mix(in srgb, var(--texto) 16%, transparent);
+  box-shadow: var(--sombra-flutuante);
+}
+.menu-item { height: 24px; padding: 0 10px; border-radius: 6px; font-size: 13px; }
+.menu-item:hover:not(:disabled), .popover-item.ativo { background: var(--botao); color: var(--botao-texto); }
+.menu-item:hover:not(:disabled) .codicon, .popover-item.ativo .codicon { color: inherit !important; }
+.menu-item:disabled { opacity: 0.4; }
+.menu-sep, .popover-sep { margin: 4px 8px; background: var(--linha-fina); }
+.popover-item { border-radius: 6px; }
+
+/* A paleta de comandos vira um Spotlight. */
+.paleta {
+  top: 96px; width: min(660px, calc(100vw - 40px)); padding: 8px;
+  border-radius: 14px;
+  background: var(--vidro);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  backdrop-filter: blur(30px) saturate(1.6);
+  border: 0.5px solid color-mix(in srgb, var(--texto) 18%, transparent);
+  box-shadow: var(--sombra-flutuante);
+}
+.paleta input { height: 42px; padding: 0 10px; border: 0; background: transparent; box-shadow: none; font-size: 19px; font-weight: 300; }
+.paleta input:focus { box-shadow: none; }
+.paleta ul { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--linha-fina); }
+.paleta-item { height: 32px; padding: 0 10px; border-radius: 8px; }
+.paleta-item.selecionado { background: var(--botao); color: var(--botao-texto); }
+.paleta-item.selecionado .paleta-detalhe, .paleta-item.selecionado .codicon { color: inherit; opacity: 0.8; }
+
+/* Avisos como notificações do Mac: no canto de cima, de vidro. */
+.avisos { top: 50px; bottom: auto; right: 16px; }
+.aviso {
+  width: 360px; padding: 12px 14px; border-radius: 14px;
+  background: var(--vidro);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  backdrop-filter: blur(28px) saturate(1.6);
+  border: 0.5px solid color-mix(in srgb, var(--texto) 16%, transparent);
+  box-shadow: var(--sombra-flutuante);
+  animation: entra-mac 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes entra-mac { from { opacity: 0; transform: translateX(24px); } }
+
+/* ---------- detalhes que ficam mais suaves ---------- */
+.cartao-modelo, .cartao-papel, .linha-prompt, .tarefa-corpo { border-radius: 11px; }
+.arquivo { border-radius: 6px; }
+.chip, .pilula, .tag-inativo { border-radius: 999px; }
+.tag-papel { border-radius: 5px; }
+.fluxo-barra, .previa-barra { background: transparent; border-bottom: 1px solid var(--linha-fina); }
+.fluxo-gaveta { background: color-mix(in srgb, var(--lateral) 92%, transparent); border-left: 1px solid var(--linha-fina); }
+.lista-terminais { border-left: 1px solid var(--linha-fina); }
+.menu-item > span { flex: 1; }
+.menu-item kbd { margin-left: 18px; padding: 0; border: 0; background: none; color: var(--mudo); font-size: 12px; }
+.menu-item:hover:not(:disabled) kbd { color: inherit; opacity: 0.75; }
+.paleta-item kbd { padding: 0; border: 0; background: none; color: var(--mudo); font-size: 12px; }
+.paleta-item.selecionado kbd { color: inherit; opacity: 0.7; }
+
+/* ---------- a órbita: o Orbion no centro, um anel por etapa ---------- */
+.orbita-logo { color: var(--texto); overflow: visible; pointer-events: none; }
+.orbita-logo .marca-rastro { fill: currentColor; }
+.orbita-logo .marca-satelite { fill: #4C6BFF; }
+.orbita-nucleo { fill: color-mix(in srgb, var(--cor, #4C6BFF) 9%, transparent); stroke: color-mix(in srgb, var(--cor, #4C6BFF) 30%, transparent); stroke-width: 1; }
+.orbita-anel { fill: none; stroke-width: 1; }
+.orbita-anel.anel-1 { stroke: color-mix(in srgb, var(--texto) 26%, transparent); stroke-dasharray: 2 4; }
+.orbita-anel.anel-2 { stroke: color-mix(in srgb, var(--texto) 18%, transparent); }
+.orbita-anel.anel-3, .orbita-anel.anel-4, .orbita-anel.anel-5 { stroke: color-mix(in srgb, var(--texto) 12%, transparent); stroke-dasharray: 4 5; }
+.orbita-lua { opacity: 0.85; stroke: var(--fundo); stroke-width: 2; }
+.orbita-nome { font-size: 9.5px; }
+.boas-vindas-topo {
+  gap: 30px; padding: 22px 28px; margin-bottom: 22px;
+  border-radius: 16px; border: 1px solid var(--linha-fina);
+  background: radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, #4C6BFF 9%, transparent), transparent 60%), color-mix(in srgb, var(--texto) 3%, transparent);
+}
+.boas-vindas-topo > .orbita { width: 300px; max-width: 42%; height: auto; flex: none; }
+.boas-vindas-texto { min-width: 0; }
+.boas-vindas-texto h1 { font-size: 26px; }
+.boas-vindas-texto p { max-width: 56ch; }
+.legenda-aneis { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; color: var(--mudo); font-size: 12.5px; }
+.legenda-aneis li { display: flex; align-items: center; gap: 8px; }
+.anel-numero { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--texto) 22%, transparent); color: var(--texto); font-size: 11px; font-weight: 600; flex: none; }
+.orbita-nome { font-size: 10px; }
+.direita-vazia .orbita, .chat-boas-vindas .orbita { width: 100%; max-width: 300px; height: auto; }
+.voo-orbita .orbita { max-width: 300px; }
+
+/* ---------- montar o time: o modelo de IA de cada agente ---------- */
+.grupo-topo { display: flex; align-items: center; gap: 8px; }
+.chip-modelo {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  height: 24px; padding: 0 6px 0 8px; margin-top: 4px; border-radius: 7px;
+  border: 1px solid var(--linha-fina); background: var(--realce); color: var(--texto);
+  font-size: 11.5px; cursor: pointer; white-space: nowrap; overflow: hidden;
+}
+.chip-modelo:hover { background: var(--realce-forte); border-color: color-mix(in srgb, var(--cor, var(--foco)) 45%, transparent); }
+.chip-modelo .codicon { font-size: 12px; color: var(--mudo); }
+.chip-modelo-qual { color: var(--mudo); overflow: hidden; text-overflow: ellipsis; }
+.chip-modelo.indisponivel { border-color: color-mix(in srgb, var(--aviso) 55%, transparent); }
+.ponto-motor { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--mudo); }
+.ponto-motor.ok { background: var(--ok); }
+.ponto-motor.falta { background: var(--aviso); }
+.chip-auto { padding: 0 5px; border-radius: 5px; font-size: 10px; font-weight: 600; line-height: 15px; background: color-mix(in srgb, var(--foco) 18%, transparent); color: var(--texto); }
+.grupo-topo h2 { font-size: 13px; font-weight: 700; }

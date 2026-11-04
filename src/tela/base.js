@@ -81,8 +81,8 @@ async function api(canal, ...args) {
   }
 }
 
-const hora = (t) => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-const data = (t) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+const hora = (t) => new Date(t).toLocaleTimeString(localeAtual(), { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const data = (t) => new Date(t).toLocaleString(localeAtual(), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 const nomeDe = (rel) => rel.split('/').pop();
 
 /** Teclas dos campos de mensagem, como num chat: Enter envia; Ctrl+Enter (ou Shift+Enter) quebra a linha. */
@@ -345,7 +345,7 @@ function fmtTokens(n) {
 function chipTokens(t, { ao_vivo = false } = {}) {
   const n = totalTokens(t);
   if (!n) return null;
-  const num = (x) => (x || 0).toLocaleString('pt-BR');
+  const num = (x) => (x || 0).toLocaleString(localeAtual());
   const cache = t.cacheLido ? Math.round((t.cacheLido / n) * 100) : 0;
   return h('span', {
     class: `chip-tokens${ao_vivo ? ' ao-vivo' : ''}`,

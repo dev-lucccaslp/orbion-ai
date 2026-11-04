@@ -69,6 +69,7 @@ function itensDosMenus() {
       ['Voo: o que as IAs estão fazendo', 'pulse', () => abrirDireita('voo'), 'Ctrl+Shift+V'],
       ['Ao vivo', 'output', () => abrirPainelEm('log')],
       ['Prévia de uma tela…', 'preview', pedirPrevia, null, !!S.projeto],
+      ['Fluxos do projeto', 'type-hierarchy-sub', () => { if (S.vista !== 'fluxos' || $('#lateral').hidden) mudarVista('fluxos'); abrirFluxo(); }, 'Ctrl+Shift+F', !!S.projeto],
       '-',
       ['Barra lateral', 'layout-sidebar-left', alternarLateral, 'Ctrl+B'],
       ['Painel de baixo', 'layout-panel', alternarPainel, 'Ctrl+J'],
@@ -76,6 +77,7 @@ function itensDosMenus() {
       '-',
       ['Aumentar fonte', 'zoom-in', () => mudarFonte(1), 'Ctrl+='],
       ['Diminuir fonte', 'zoom-out', () => mudarFonte(-1), 'Ctrl+-'],
+      ['Idioma…', 'globe', escolherIdioma],
       ['Tema de cores…', 'symbol-color', escolherTema],
       ['Tema de ícones…', 'file-media', escolherIcones],
     ]],
@@ -104,6 +106,7 @@ function itensDosMenus() {
       ['Conversar sobre o projeto', 'comment', () => iniciarConversa(''), 'Ctrl+L', p],
       ['Grill-me: questionar um plano', 'flame', () => iniciarConversa('grill-me'), null, p],
       ['Sugestões de melhoria', 'lightbulb', () => abrirMelhorias(), null, p],
+      ['Mapear os fluxos do projeto', 'type-hierarchy-sub', () => { abrirFluxo(); mapearFluxos(); }, null, p && !FLX.mapeando],
       '-',
       ['Criar time…', 'organization', novoTime, null, p],
       ['Criar agente…', 'person-add', () => novoAgente(), null, p && S.projeto.montado],
@@ -138,6 +141,7 @@ function desenharMenus() {
 
 function abrirMenuTopo(rotulo, botao) {
   const [, itens] = itensDosMenus().find(([r]) => r === rotulo);
+  const r = botao.getBoundingClientRect(); // antes de redesenhar: o botão é trocado por um novo
   menuAberto = rotulo;
   desenharMenus();
   const menu = $('#menu');
@@ -148,7 +152,6 @@ function abrirMenuTopo(rotulo, botao) {
       ic(icone), h('span', {}, texto), atalho ? h('kbd', {}, atalho) : null);
   }));
   menu.hidden = false;
-  const r = botao.getBoundingClientRect();
   menu.style.left = `${r.left}px`;
   menu.style.top = `${r.bottom + 2}px`;
 }

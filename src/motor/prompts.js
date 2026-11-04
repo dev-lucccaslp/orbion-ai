@@ -6,6 +6,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { paraPrompt: anexosParaPrompt } = require('./anexos');
+const { paraPrompt: fluxoParaPrompt } = require('./fluxos');
 
 const PADROES = path.join(__dirname, '..', 'modelos', 'prompts');
 const NOMES_PADRAO = ['receptor.md', 'tarefa.md'];
@@ -98,8 +99,19 @@ function secaoProjetos(projeto) {
 
 const secaoMemoria = (memoria) => (memoria ? `# Memória do projeto\nO que o time já aprendeu neste projeto em pedidos anteriores:\n${memoria}` : '');
 
-function promptReceptor({ receptor, time, pedido, projeto, anteriores, conversa = '', somenteLeitura = false, anexos = [], config, memoria = '' }) {
-  return preencher(lerModelo(projeto, receptor.modeloPrompt || 'receptor.md'), {
+/** O que o modelo não tiver como campo vai no fim, para valer também nos prompts que a pessoa editou. */
+function comExtras(modelo, valores, extras) {
+  const semComentario = modelo.replace(/<!--[\s\S]*?-->/g, '');
+  const sobra = Object.entries(extras)
+    .filter(([campo, conteudo]) => conteudo && !new RegExp(`\\{\\{\\s*${campo}\\s*\\}\\}`).test(semComentario))
+    .map(([, conteudo]) => conteudo);
+  return [preencher(modelo, { ...valores, ...extras }), ...sobra].join('\n\n').trim();
+}
+
+function promptReceptor({ receptor, time, pedido, projeto, anteriores, conversa = '', somenteLeitura = false, anexos = [], fluxoAtual = null, config, memoria = '' }) {
+  const modelo = lerModelo(projeto, receptor.modeloPrompt || 'receptor.md');
+  const atual = fluxoAtual ? `# Fluxo que este pedido muda: ${fluxoAtual.nome}\nO pedido é sobre um fluxo que já existe. No "fluxo" do plano, ponha só os blocos que mudam ou são novos, com os mesmos ids; os outros continuam como estão.\n${fluxoParaPrompt(fluxoAtual)}` : '';
+  return comExtras(modelo, {
     agente: receptor,
     projeto,
     pedido: [pedido, somenteLeitura ? '(A pessoa marcou "Só validar": o tipo é verificacao. Ninguém pode alterar nada; planeje só leitura e consultas.)' : '', anexosParaPrompt(projeto, anexos)].filter(Boolean).join('\n\n'),
@@ -112,7 +124,7 @@ function promptReceptor({ receptor, time, pedido, projeto, anteriores, conversa 
     anteriores: conversa || (anteriores.length
       ? `# Pedidos anteriores neste projeto (mais recentes primeiro)\n${anteriores.map((e) => `- "${e.pedido}" (${e.status})`).join('\n')}`
       : ''),
-  });
+  }, { fluxo_atual: atual });
 }
 
 function promptTarefa({ agente, tarefa, estado, agentes, projeto, skills, memoria = '' }) {
@@ -131,7 +143,9 @@ function promptTarefa({ agente, tarefa, estado, agentes, projeto, skills, memori
   const entregas = estado.tarefas.filter((t) => t.id !== tarefa.id && t.passe && t.status === 'concluida');
   const correcao = tarefa.correcao;
 
-  return preencher(lerModelo(projeto, agente.modeloPrompt || 'tarefa.md'), {
+  const modelo = lerModelo(projeto, agente.modeloPrompt || 'tarefa.md');
+  const fluxo = estado.fluxo?.blocos?.length ? `# O fluxo desta funcionalidade: ${estado.fluxo.nome}\nAo terminar, devolva no "fluxo" do passe os blocos que você fez ou mudou, com os arquivos de verdade e os mesmos ids.\n${fluxoParaPrompt(estado.fluxo, tarefa.blocos || [])}` : '';
+  return comExtras(modelo, {
     agente,
     projeto,
     data: hoje(),
@@ -162,7 +176,7 @@ function promptTarefa({ agente, tarefa, estado, agentes, projeto, skills, memori
       ? `# Sua verificação anterior\nNa rodada passada você reprovou com:\n${tarefa.passe.resumo}\nO trabalho foi corrigido depois disso. Verifique tudo de novo.`
       : '',
     resposta_pessoa: tarefa.respostaHumana ? `# Resposta da pessoa\n${tarefa.respostaHumana}` : '',
-  });
+  }, { fluxo });
 }
 
 /** Mostra como ficaria o prompt de um agente, com uma tarefa de exemplo. */
@@ -186,4 +200,4 @@ function previa({ agente, agentes, projeto, config, skills, memoria = '' }) {
   return promptTarefa({ agente, tarefa, estado, agentes, projeto, skills, memoria });
 }
 
-module.exports = { promptReceptor, promptTarefa, previa, listarModelos, lerModelo, garantirModelo, restaurarModelo, STATUS, NOMES_PADRAO };
+module.exports = { secaoProjetos, promptReceptor, promptTarefa, previa, listarModelos, lerModelo, garantirModelo, restaurarModelo, STATUS, NOMES_PADRAO };

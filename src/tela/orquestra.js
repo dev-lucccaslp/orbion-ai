@@ -44,42 +44,89 @@ function metricas(eventos) {
 
 /* ---------- o time em órbita ---------- */
 
-function desenharOrbita(estado, { largura = 300, altura = 150 } = {}) {
-  const agentes = agentesDe(estado?.time || S.timeAtual).filter((a) => a.ativo);
-  const trabalhando = trabalhandoEm(estado);
+/** O símbolo do Orbion no centro da órbita. */
+function logoNaOrbita(cx, cy, lado) {
+  const modelo = document.querySelector('#marca-grande')?.content.firstElementChild;
+  if (!modelo) return svg('circle', { class: 'orbita-nucleo', cx, cy, r: lado / 2 });
+  const el = modelo.cloneNode(true);
+  for (const [k, v] of Object.entries({ class: 'orbita-logo', x: cx - lado / 2, y: cy - lado / 2, width: lado, height: lado })) el.setAttribute(k, v);
+  return el;
+}
+
+// Cada anel é uma etapa do pedido, de dentro para fora. Papel novo ganha um anel depois destes.
+const ANEIS_DA_ORBITA = [
+  { papel: 'receptor', nome: 'recebe o pedido' },
+  { papel: 'executor', nome: 'faz' },
+  { papel: 'verificador', nome: 'confere' },
+];
+
+/** A órbita de exemplo, para quando ainda não há time: um agente em cada etapa. */
+function desenharOrbitaVazia() {
+  return desenharOrbita(null, { largura: 300, altura: 230, agentes: [
+    { id: 'receptor', nome: 'Receptor', papel: 'receptor', cor: '#9aa4b2' },
+    { id: 'designer', nome: 'Designer', papel: 'executor', cor: '#e879f9' },
+    { id: 'dev', nome: 'Dev', papel: 'executor', cor: '#60a5fa' },
+    { id: 'po', nome: 'PO', papel: 'executor', cor: '#f5b94a' },
+    { id: 'revisor', nome: 'Revisor', papel: 'verificador', cor: '#4ade80' },
+  ] });
+}
+
+/** O time em órbita do Orbion: cada agente gira no anel do papel dele. */
+function desenharOrbita(estado, { largura = 300, altura = 150, agentes: lista = null } = {}) {
+  const agentes = lista || agentesDe(estado?.time || S.timeAtual).filter((a) => a.ativo);
+  const trabalhando = lista ? new Set() : trabalhandoEm(estado);
   const terminaram = new Set((estado?.tarefas || []).filter((t) => t.status === 'concluida').map((t) => t.agente));
   const cx = largura / 2;
   const cy = altura / 2;
-  const rx = largura * 0.43;
-  const ry = altura * 0.36;
-  const giro = (-14 * Math.PI) / 180;
+  const rx = largura * 0.44;
+  const ry = altura * 0.43;
+  const giro = -10;
+  const rad = (giro * Math.PI) / 180;
+  const papeis = [...new Set([...ANEIS_DA_ORBITA.map((a) => a.papel), ...agentes.map((a) => a.papel)])];
+  const usados = papeis.filter((p) => agentes.some((a) => a.papel === p));
+  const aneis = usados.length ? usados : ANEIS_DA_ORBITA.map((a) => a.papel);
+  const fracao = (i) => (aneis.length === 1 ? 0.7 : 0.44 + (0.56 * i) / (aneis.length - 1));
+  // A elipse inclinada como caminho (dois arcos), para o anel e para as luas andarem nele.
+  const caminho = (a, b) => {
+    const [x0, y0] = [cx + a * Math.cos(rad), cy + a * Math.sin(rad)];
+    const [x1, y1] = [cx - a * Math.cos(rad), cy - a * Math.sin(rad)];
+    return `M${x0},${y0} A${a},${b} ${giro} 1 1 ${x1},${y1} A${a},${b} ${giro} 1 1 ${x0},${y0}`;
+  };
   const ponto = (a, b, ang) => {
     const x = a * Math.cos(ang);
     const y = b * Math.sin(ang);
-    return [cx + x * Math.cos(giro) - y * Math.sin(giro), cy + x * Math.sin(giro) + y * Math.cos(giro)];
+    return [cx + x * Math.cos(rad) - y * Math.sin(rad), cy + x * Math.sin(rad) + y * Math.cos(rad)];
   };
-  const receptor = agentes.filter((a) => a.papel === 'receptor');
-  const outros = agentes.filter((a) => a.papel !== 'receptor');
-  const posicoes = [
-    ...receptor.map((a, i) => [a, ...ponto(rx * 0.47, ry * 0.42, Math.PI * 0.85 + i)]),
-    ...outros.map((a, i) => [a, ...ponto(rx, ry, (i / Math.max(outros.length, 1)) * Math.PI * 2 - Math.PI / 2)]),
-  ];
+  const parado = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const time = timeDe(estado?.time || S.timeAtual);
-  return svg('svg', { class: 'orbita', viewBox: `0 0 ${largura} ${altura}`, role: 'img', 'aria-label': 'O time em órbita do projeto' },
-    svg('ellipse', { class: 'orbita-anel', cx, cy, rx, ry, transform: `rotate(-14 ${cx} ${cy})` }),
-    svg('ellipse', { class: 'orbita-anel', cx, cy, rx: rx * 0.47, ry: ry * 0.42, transform: `rotate(-14 ${cx} ${cy})` }),
-    posicoes.filter(([a]) => trabalhando.has(a.id)).map(([a, x, y]) => svg('line', { class: 'orbita-raio', x1: x, y1: y, x2: cx, y2: cy, cor: a.cor })),
-    svg('circle', { class: 'orbita-planeta', cx, cy, r: 15, cor: time?.cor }),
-    svg('text', { class: 'orbita-inicial', x: cx, y: cy + 5, 'text-anchor': 'middle' }, (S.projeto?.nome || '?').slice(0, 1).toUpperCase()),
-    posicoes.map(([a, x, y]) => svg('g', {
-      class: `orbita-agente${trabalhando.has(a.id) ? ' trabalhando' : ''}${terminaram.has(a.id) ? ' terminou' : ''}`,
-      cor: a.cor,
-      onclick: () => abrirAgente(time.id, a.id),
-    },
-    svg('title', {}, `${a.nome} · ${PAPEL[a.papel]} · ${a.motor}`),
-    trabalhando.has(a.id) ? svg('circle', { class: 'orbita-halo', cx: x, cy: y, r: 12 }) : null,
-    svg('circle', { class: 'orbita-lua', cx: x, cy: y, r: a.papel === 'receptor' ? 5.5 : 7 }),
-    svg('text', { class: 'orbita-nome', x, y: y + 18, 'text-anchor': 'middle' }, a.nome))));
+  const nucleo = Math.min(30, ry * fracao(0) * 0.85); // a logo cabe folgada no 1º anel
+  const raiz = svg('svg', { class: 'orbita', viewBox: `0 0 ${largura} ${altura}`, role: 'img', 'aria-label': 'O time em órbita do Orbion' },
+    aneis.map((p, i) => svg('path', { class: `orbita-anel anel-${i + 1}`, d: caminho(rx * fracao(i), ry * fracao(i)) },
+      svg('title', {}, `${i + 1}º anel: ${ANEIS_DA_ORBITA.find((x) => x.papel === p)?.nome || PAPEL[p] || p}`))),
+    svg('circle', { class: 'orbita-nucleo', cx, cy, r: nucleo * 0.78, cor: time?.cor }),
+    logoNaOrbita(cx, cy, nucleo),
+    aneis.flatMap((p, i) => {
+      const doAnel = agentes.filter((a) => a.papel === p);
+      const [a, b] = [rx * fracao(i), ry * fracao(i)];
+      const volta = 46 + i * 26; // os de dentro giram mais rápido, como planetas
+      return doAnel.map((ag, k) => {
+        const fase = k / doAnel.length;
+        const [x, y] = parado ? ponto(a, b, ((fase + i * 0.37) % 1) * Math.PI * 2) : [0, 0];
+        return svg('g', {
+          class: `orbita-agente${trabalhando.has(ag.id) ? ' trabalhando' : ''}${terminaram.has(ag.id) ? ' terminou' : ''}`,
+          cor: ag.cor,
+          onclick: lista || !time ? null : () => abrirAgente(time.id, ag.id),
+        },
+        svg('title', {}, `${ag.nome} · ${PAPEL[ag.papel] || ag.papel}${ag.motor ? ` · ${ag.motor}` : ''}`),
+        trabalhando.has(ag.id) ? svg('circle', { class: 'orbita-halo', cx: x, cy: y, r: 12 }) : null,
+        svg('circle', { class: 'orbita-lua', cx: x, cy: y, r: ag.papel === 'receptor' ? 5.5 : 6.5 }),
+        svg('text', { class: 'orbita-nome', x, y: y + 15, 'text-anchor': 'middle' }, ag.nome),
+        parado ? null : svg('animateMotion', { dur: `${volta}s`, repeatCount: 'indefinite', begin: `${-(((fase + i * 0.37) % 1) * volta).toFixed(2)}s`, path: caminho(a, b) }));
+      });
+    }));
+  // Redesenhar não faz as luas pularem para o começo: todas seguem o mesmo relógio.
+  if (!parado) requestAnimationFrame(() => { if (raiz.isConnected) try { raiz.setCurrentTime((performance.now() / 1000) % 3600); } catch {} });
+  return raiz;
 }
 
 /* ---------- barra lateral: times ---------- */
@@ -462,7 +509,7 @@ function grupoDaData(t) {
   if (dias === 1) return 'Ontem';
   if (dias < 7) return 'Últimos 7 dias';
   if (dias < 30) return 'Últimos 30 dias';
-  return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(localeAtual(), { month: 'long', year: 'numeric' });
 }
 
 /** As conversas da Orquestra: cada fio com o primeiro pedido como título. */
@@ -479,7 +526,7 @@ function conversasDaOrquestra() {
     const vivo = ordem.some((e) => S.vivos.get(e.id)?.rodando);
     return {
       id: f.id, titulo: ordem[0].pedido.split('\n')[0].slice(0, 120), quando: ultimo.criadaEm, cor: ultimo.timeCor,
-      detalhe: [ultimo.timeNome, `${ordem.length} pedido${ordem.length > 1 ? 's' : ''}`, vivo ? 'rodando agora' : ST_EXECUCAO[ultimo.status] || ultimo.status].join(' · '),
+      detalhe: [ultimo.timeNome, (ordem.length > 1 ? `${ordem.length} pedidos` : `${ordem.length} pedido`), vivo ? 'rodando agora' : ST_EXECUCAO[ultimo.status] || ultimo.status].join(' · '),
       icone: vivo ? 'loading' : ultimo.status === 'concluida' ? 'pass' : ultimo.status === 'falhou' ? 'error' : 'circle-slash',
       classe: vivo ? 'codicon-modifier-spin' : '',
     };
@@ -496,7 +543,7 @@ function desenharHistorico(qual) {
     if (!HIST.conversas) api('conversa:listar', S.projeto.caminho).then((l) => { HIST.conversas = l; if (HIST.aberto === 'conversa') desenharDireita(); });
     itens = (HIST.conversas || []).filter((c) => c.mensagens).map((c) => ({
       id: c.id, titulo: c.titulo, quando: c.atualizadaEm, icone: c.modo === 'grill-me' ? 'flame' : 'comment-discussion',
-      detalhe: [c.modo || 'conversa livre', `${c.mensagens} mensage${c.mensagens > 1 ? 'ns' : 'm'}`, rotuloMotor(c.motor, '')].join(' · '),
+      detalhe: [c.modo || 'conversa livre', (c.mensagens > 1 ? `${c.mensagens} mensagens` : `${c.mensagens} mensagem`), rotuloMotor(c.motor, '')].join(' · '),
     }));
     atual = CV.atual?.id;
   }
@@ -617,7 +664,7 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
   if (!e) {
     const t = timeDe(S.timeAtual) || S.projeto.times[0];
     return [h('div', { class: 'chat-boas-vindas' },
-      desenharOrbita(null, { largura: 260, altura: 130 }),
+      desenharOrbita(null, { largura: 300, altura: 220 }),
       h('h3', {}, `O que o ${t?.nome || 'time'} deve fazer?`),
       h('p', {}, 'Escreva o pedido abaixo. O Receptor monta o plano, tu aprova, e os agentes trabalham juntos: quem só lê trabalha em paralelo, e quem edita espera a vez.'),
       h('p', { class: 'pequeno' }, 'Para falar direto com um agente, use @nome (ou /agente). Para trocar de time, /time.'),
@@ -688,7 +735,7 @@ function mensagensDoPedido(e = S.vendo, eventos = S.eventos, vivo = vendoVivo())
         })) : null,
         t.passe?.recado_para_proximo ? h('div', { class: 'msg-recado' }, h('span', { class: 'msg-rotulo' }, ic('arrow-right'), 'Recado para o próximo'), markdown(t.passe.recado_para_proximo)) : null,
         t.passe?.aprendizados?.length ? h('details', { class: 'msg-memoria' },
-          h('summary', {}, ic('book'), `Anotou ${t.passe.aprendizados.length} aprendizado${t.passe.aprendizados.length > 1 ? 's' : ''} na memória`),
+          h('summary', {}, ic('book'), (t.passe.aprendizados.length > 1 ? `Anotou ${t.passe.aprendizados.length} aprendizados na memória` : `Anotou ${t.passe.aprendizados.length} aprendizado na memória`)),
           h('ul', {}, t.passe.aprendizados.map((x) => h('li', {}, trechoMd(x))))) : null,
         t.erro ? h('p', { class: 'erro-texto' }, t.erro) : null,
       ],
@@ -782,7 +829,7 @@ function blocoExecucao(chave, linhas, rodando) {
   const acoes = passos.filter((l) => l.tipo === 'acao');
   const arquivos = new Set(acoes.map((l) => /^(Criando|Editando) (.+)$/.exec(l.texto)?.[2]).filter(Boolean));
   const comandos = acoes.filter((l) => l.texto.startsWith('$')).length;
-  const resumo = [acoes.length ? `${acoes.length} aç${acoes.length > 1 ? 'ões' : 'ão'}` : 'nenhuma ação ainda', arquivos.size ? `${arquivos.size} arquivo${arquivos.size > 1 ? 's' : ''}` : null, comandos ? `${comandos} comando${comandos > 1 ? 's' : ''}` : null].filter(Boolean).join(' · ');
+  const resumo = [acoes.length ? (acoes.length > 1 ? `${acoes.length} ações` : `${acoes.length} ação`) : 'nenhuma ação ainda', arquivos.size ? (arquivos.size > 1 ? `${arquivos.size} arquivos` : `${arquivos.size} arquivo`) : null, comandos ? (comandos > 1 ? `${comandos} comandos` : `${comandos} comando`) : null].filter(Boolean).join(' · ');
   const tudo = S.execTudo.has(chave);
   const mostrar = tudo ? passos : passos.slice(-MOSTRAR_LINHAS);
   const lista = aberto ? h('div', { class: 'exec-lista', 'data-chave': chave },
@@ -886,12 +933,12 @@ function desenharVoo() {
     h('section', { class: 'voo-bloco voo-uso' },
       h('h4', {}, 'Uso do plano'),
       janelas ? [medidor('Claude · 5 horas', pct(janelas.five_hour)), medidor('Claude · semana', pct(janelas.seven_day))] : h('p', { class: 'mudo pequeno' }, 'Aparece quando um agente do Claude rodar.'),
-      S.uso.codex ? h('p', { class: 'mudo pequeno' }, ic('zap'), ` Codex, última chamada: ${((S.uso.codex.input_tokens || 0) + (S.uso.codex.output_tokens || 0)).toLocaleString('pt-BR')} tokens`) : null),
+      S.uso.codex ? h('p', { class: 'mudo pequeno' }, ic('zap'), ` Codex, última chamada: ${((S.uso.codex.input_tokens || 0) + (S.uso.codex.output_tokens || 0)).toLocaleString(localeAtual())} tokens`) : null),
     vivos.length ? h('section', { class: 'voo-bloco voo-trava' },
       h('h4', {}, ic('lock'), 'Escrita nos arquivos'),
       h('p', {}, escrevendo.length ? ['Escrevendo agora: ', escrevendo.map((a) => h('span', { class: 'chip', cor: a.cor }, a.nome))] : 'Ninguém escrevendo agora.'),
       fila.length ? h('p', {}, 'Na fila: ', fila.map((a) => h('span', { class: 'chip', cor: a.cor }, a.nome))) : null) : null,
-    pedidos.length ? pedidos.map(cartaoDoPedido) : h('div', { class: 'voo-vazio' }, desenharOrbita(null, { largura: 260, altura: 130 }),
+    pedidos.length ? pedidos.map(cartaoDoPedido) : h('div', { class: 'voo-vazio' }, desenharOrbita(null, { largura: 300, altura: 220 }),
       h('p', { class: 'mudo' }, 'Quando um time estiver trabalhando, cada agente aparece aqui com o que está fazendo, há quanto tempo, quantas ações e quais arquivos.')));
 }
 
@@ -908,7 +955,7 @@ function cartaoDoPedido({ estado, eventos, vivo }) {
       chipTokens(totalPedido, { ao_vivo: vivo }),
       h('span', { class: `pilula st-${estado.status}` }, ST_EXECUCAO[estado.status] || estado.status)),
     h('div', { class: 'progresso' }, h('i', { estilo: { width: `${Math.round((feitas / total) * 100)}%` } })),
-    h('div', { class: 'voo-orbita' }, desenharOrbita(estado, { largura: 280, altura: 120 })),
+    h('div', { class: 'voo-orbita' }, desenharOrbita(estado, { largura: 300, altura: 170 })),
     h('div', { class: 'cartoes' }, estado.tarefas.map((t) => {
       const a = agentePorId(t.agente, estado.time);
       const x = m.get(t.id);
@@ -1040,7 +1087,7 @@ function garantirVivo(ev) {
 
 /** Notificação do sistema com o nome e o ícone do Orbion.ai; o clique traz a janela. */
 function notificar(texto) {
-  api('app:notificar', 'Orbion.ai', texto).catch(() => {});
+  api('app:notificar', 'Orbion.ai', traduzir(texto)).catch(() => {});
 }
 
 const redesenharToques = debounce(() => {

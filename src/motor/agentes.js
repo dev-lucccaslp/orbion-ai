@@ -112,7 +112,7 @@ function listarModelos() {
     .filter((f) => f.endsWith('.md'))
     .map((f) => {
       const a = lerArquivoAgente(path.join(MODELOS, f));
-      return { id: a.id, nome: a.nome, descricao: a.descricao, icone: a.icone, cor: a.cor, papel: a.papel, motor: a.motor, padrao: TIME_PADRAO.includes(a.id) };
+      return { id: a.id, nome: a.nome, descricao: a.descricao, icone: a.icone, cor: a.cor, papel: a.papel, motor: a.motor, modelo: a.modelo || '', padrao: TIME_PADRAO.includes(a.id) };
     })
     .sort((a, b) => (b.padrao - a.padrao) || a.nome.localeCompare(b.nome));
 }
@@ -126,6 +126,14 @@ function prepararTime(projeto, time, ids = TIME_PADRAO) {
     const destino = path.join(pasta, `${path.basename(id)}.md`);
     if (fs.existsSync(origem) && !fs.existsSync(destino)) fs.copyFileSync(origem, destino);
   }
+}
+
+/** Troca o motor e o modelo de um agente do time (o resto do arquivo fica como está). */
+function ajustarMotor(projeto, time, id, { motor, modelo = '' }) {
+  const arquivo = path.join(pastaAgentes(projeto, time), `${path.basename(id)}.md`);
+  if (!fs.existsSync(arquivo)) return;
+  const a = lerArquivoAgente(arquivo);
+  salvar(projeto, time, a.id, { ...a, motor, modelo });
 }
 
 function idValido(id) {
@@ -176,6 +184,7 @@ function duplicar(projeto, time, id) {
 }
 
 module.exports = {
+  ajustarMotor,
   prepararTime, carregarAgentes, listarModelos, salvar, criar, duplicar, montarTexto,
   idValido, idDoNome, separarCabecalho, pastaAgentes, TIME_PADRAO, PAPEIS, ESFORCOS,
 };

@@ -28,12 +28,88 @@ function abrirMontarTime() {
 }
 const novoTime = abrirMontarTime;
 
+/* ---------- o modelo de IA de cada agente: detectado no PC e trocável no card ---------- */
+
+/** O Claude Code e o Codex estão instalados e logados? null enquanto não se sabe. */
+function motorPronto(motor) {
+  if (motor === 'claude' || motor === 'codex') {
+    const c = S.situacaoMotores?.find((x) => x.id === motor);
+    return c ? !!(c.instalado && c.logado) : null;
+  }
+  const p = S.provedores?.find((x) => `api:${x.id}` === motor);
+  return p ? !!(p.temChave || p.semChave) : false;
+}
+
+function situacaoDoMotor(motor) {
+  if (motor === 'claude' || motor === 'codex') {
+    const c = S.situacaoMotores?.find((x) => x.id === motor);
+    if (!c) return 'vendo…';
+    return !c.instalado ? 'não instalado' : !c.logado ? 'sem login' : motor === 'claude' ? 'teu plano' : 'tua conta';
+  }
+  return motorPronto(motor) ? 'API' : 'sem token';
+}
+
+/** O primeiro motor que funciona neste PC: Claude Code, depois Codex, depois um provedor por API. */
+function melhorMotorDoPc() {
+  if (motorPronto('claude')) return 'claude';
+  if (motorPronto('codex')) return 'codex';
+  const p = S.provedores?.find((x) => x.temChave || x.semChave);
+  return p ? `api:${p.id}` : null;
+}
+
+const nomeDoMotor = (motor) => (motor === 'claude' ? 'Claude Code' : motor === 'codex' ? 'Codex' : S.provedores?.find((x) => `api:${x.id}` === motor)?.nome || motor.replace(/^api:/, ''));
+
+/** O que o agente vai usar: o que a pessoa escolheu, senão o do modelo, trocado sozinho se não existir neste PC. */
+function escolhaDoAgente(aba, m) {
+  if (aba.motores[m.id]) return aba.motores[m.id];
+  if (motorPronto(m.motor) === false) {
+    const melhor = melhorMotorDoPc();
+    if (melhor && melhor !== m.motor) return { motor: melhor, modelo: '', auto: `${nomeDoMotor(m.motor)} ${situacaoDoMotor(m.motor)} neste PC` };
+  }
+  return { motor: m.motor, modelo: m.modelo || '' };
+}
+
+/** Os motores e modelos para escolher, como no seletor da Conversa. */
+function itensDeModelo(aoEscolher, atual = {}) {
+  const lista = (motor, ids, padrao) => ['', ...ids].map((id) => ({
+    rotulo: id ? nomeModelo(id) : padrao, detalhe: id ? S.infoModelos?.[id]?.detalhe || (/(:free|-free)$/.test(id) ? 'grátis' : '') : '',
+    icone: /(:free|-free)$/.test(id) ? 'gift' : 'circle-small-filled',
+    marcado: atual.motor === motor && (atual.modelo || '') === id,
+    acao: () => aoEscolher({ motor, modelo: id }),
+  }));
+  return [
+    { rotulo: 'Claude Code', detalhe: situacaoDoMotor('claude'), icone: 'hubot', marcado: atual.motor === 'claude', filhos: lista('claude', S.modelos?.claude || [], 'Padrão do Claude Code') },
+    { rotulo: 'Codex', detalhe: situacaoDoMotor('codex'), icone: 'terminal', marcado: atual.motor === 'codex', filhos: lista('codex', S.modelos?.codex || [], 'Padrão do Codex') },
+    ...(S.provedores || []).map((p) => ({
+      rotulo: p.nome, detalhe: situacaoDoMotor(`api:${p.id}`), icone: 'key', marcado: atual.motor === `api:${p.id}`,
+      filhos: lista(`api:${p.id}`, (p.modelos?.length ? p.modelos.slice(0, 40) : [p.modelo]).filter(Boolean), p.modelo ? `Padrão (${p.modelo})` : 'Padrão do provedor'),
+    })),
+    '-',
+    { rotulo: 'Contas e modelos…', icone: 'account', acao: abrirContas },
+  ];
+}
+
+/** Descobre uma vez o que existe neste PC (CLIs logados e provedores por API). */
+async function conhecerMotoresDoPc() {
+  if (S.situacaoMotores && S.provedores) return false;
+  await Promise.all([
+    S.situacaoMotores ? null : api('contas:situacao').then((s) => { S.situacaoMotores = s; }).catch(() => { S.situacaoMotores = []; }),
+    S.provedores ? null : carregarProvedores().catch(() => {}),
+  ]);
+  return true;
+}
+
 PAGINAS.montar = {
   icone: () => ic('organization', 'icone-orquestra'),
   async desenhar(aba, host) {
+    const vez = (aba.vez = (aba.vez || 0) + 1);
     const modelos = await modelosDeAgente();
+    if (vez !== aba.vez || !host.isConnected) return; // outro desenho começou enquanto este esperava
     const primeiro = !S.projeto.montado;
     aba.marcados ??= new Set(modelos.filter((m) => m.padrao).map((m) => m.id));
+    aba.motores ??= {}; // agente → { motor, modelo } que a pessoa escolheu no card
+    // Na primeira vez, vê o que existe neste PC e redesenha com o modelo certo em cada card.
+    if (!S.situacaoMotores || !S.provedores) conhecerMotoresDoPc().then((mudou) => { if (mudou && S.ativa === aba.id) redesenharPagina(aba); });
     aba.cor ??= CORES_TIME.find((c) => !S.projeto.times.some((t) => t.cor === c)) || CORES_TIME[0];
     const nome = h('input', { valor: aba.nome ?? (primeiro ? 'Time principal' : `Time ${S.projeto.times.length + 1}`), maxlength: 40 });
     nome.addEventListener('input', () => { aba.nome = nome.value; });
@@ -44,20 +120,46 @@ PAGINAS.montar = {
       onclick: (e) => { aba.cor = c; e.currentTarget.parentElement.querySelectorAll('.bt-cor').forEach((b) => b.classList.toggle('marcado', b === e.currentTarget)); },
     })));
 
+    const chipModelo = (m) => {
+      const e = escolhaDoAgente(aba, m);
+      const pronto = motorPronto(e.motor);
+      return h('button', {
+        type: 'button',
+        class: `chip-modelo${pronto === false ? ' indisponivel' : ''}`,
+        title: [e.auto ? `Trocado sozinho: ${e.auto}.` : '', pronto === false ? `${nomeDoMotor(e.motor)}: ${situacaoDoMotor(e.motor)}.` : '', 'Clique para trocar o modelo de IA.'].filter(Boolean).join(' '),
+        onclick: (ev) => {
+          ev.preventDefault(); // o card é um label: o clique não pode marcar/desmarcar o agente
+          ev.stopPropagation();
+          abrirPopover(ev.currentTarget, itensDeModelo((escolha) => { aba.motores[m.id] = escolha; redesenharPagina(aba); }, e));
+        },
+      },
+      h('i', { class: `ponto-motor${pronto ? ' ok' : pronto === false ? ' falta' : ''}` }),
+      h('span', {}, nomeDoMotor(e.motor)),
+      h('span', { class: 'chip-modelo-qual' }, e.modelo ? nomeModelo(e.modelo) : 'padrão'),
+      e.auto ? h('span', { class: 'chip-auto' }, 'auto') : null,
+      ic('chevron-down'));
+    };
+
     const cartao = (m) => {
       const caixa = h('input', { type: 'checkbox', checked: aba.marcados.has(m.id), disabled: m.id === 'receptor' });
-      caixa.addEventListener('change', () => { if (caixa.checked) aba.marcados.add(m.id); else aba.marcados.delete(m.id); });
+      caixa.addEventListener('change', () => { if (caixa.checked) aba.marcados.add(m.id); else aba.marcados.delete(m.id); trocarOrbita(); });
       return h('label', { class: `cartao-modelo${m.id === 'receptor' ? ' fixo' : ''}`, cor: m.cor },
         caixa,
         h('span', { class: 'cartao-icone' }, ic(m.icone)),
         h('span', { class: 'cartao-texto' },
           h('strong', {}, m.nome, m.papel !== 'executor' ? h('span', { class: `tag-papel papel-${m.papel}` }, PAPEL[m.papel]) : null),
           h('span', {}, m.descricao),
-          h('span', { class: 'chip-motor' }, m.motor)));
+          chipModelo(m)));
     };
 
     const criar = async (origem) => {
-      const r = await api('time:criar', S.projeto.caminho, { nome: nome.value.trim() || 'Novo time', cor: aba.cor, descricao: descricao.value.trim(), origem });
+      // O modelo de cada agente (o escolhido no card, ou o trocado sozinho porque o padrão não existe neste PC).
+      const motores = Array.isArray(origem) || origem === 'vazio'
+        ? Object.fromEntries(modelos.filter((m) => m.id === 'receptor' || (Array.isArray(origem) && origem.includes(m.id)))
+          .map((m) => [m.id, escolhaDoAgente(aba, m)]).filter(([, e]) => e.motor)
+          .map(([id, e]) => [id, { motor: e.motor, modelo: e.modelo || '' }]))
+        : {};
+      const r = await api('time:criar', S.projeto.caminho, { nome: nome.value.trim() || 'Novo time', cor: aba.cor, descricao: descricao.value.trim(), origem, motores });
       aplicarTimes(r.times);
       S.timeAtual = r.id;
       guardarTimeAtual();
@@ -69,17 +171,36 @@ PAGINAS.montar = {
       aviso(`${timeDe(r.id).nome} criado com ${timeDe(r.id).agentes.length} agente(s).`, 'ok');
     };
 
+    const orbitaDoTime = () => desenharOrbita(null, {
+      largura: 320, altura: 240,
+      agentes: modelos.filter((m) => m.id === 'receptor' || aba.marcados.has(m.id)).map((m) => ({ id: m.id, nome: m.nome, papel: m.papel, cor: m.cor, motor: m.motor })),
+    });
+    let orbita = orbitaDoTime();
+    const trocarOrbita = () => { const nova = orbitaDoTime(); orbita.replaceWith(nova); orbita = nova; };
+    const anel = (n, texto) => h('li', {}, h('span', { class: 'anel-numero' }, n), texto);
+
     host.append(h('div', { class: 'pagina pagina-estreita' },
-      h('div', { class: 'boas-vindas-topo' }, desenharOrbitaVazia(), h('div', {},
+      h('div', { class: 'boas-vindas-topo' }, orbita, h('div', { class: 'boas-vindas-texto' },
         h('h1', {}, primeiro ? 'Monte o time deste projeto' : 'Novo time'),
-        h('p', { class: 'mudo' }, 'Um projeto pode ter quantos times tu quiser (por exemplo: Front, API, QA), e times diferentes podem trabalhar ao mesmo tempo. Escolha com quais agentes este começa. Depois dá para mudar tudo em cada um e criar outros do zero. O Receptor sempre entra: é ele quem lê o pedido e monta o plano.'))),
+        h('p', { class: 'mudo' }, 'Um projeto pode ter quantos times tu quiser (por exemplo: Front, API, QA), e times diferentes podem trabalhar ao mesmo tempo. Escolha com quais agentes este começa; depois dá para mudar tudo.'),
+        h('ol', { class: 'legenda-aneis' },
+          anel('1', 'O Receptor recebe o pedido e monta o plano'),
+          anel('2', 'Os executores fazem'),
+          anel('3', 'Os verificadores conferem e devolvem se precisar')))),
       h('section', { class: 'grupo' },
         h('div', { class: 'grade-campos' },
           campo('Nome do time', null, nome),
           campo('Descrição', 'Opcional. Ajuda a lembrar para que serve.', descricao),
           h('div', { class: 'campo' }, h('span', { class: 'campo-rotulo' }, 'Cor'), cores))),
       h('section', { class: 'grupo' },
-        h('h2', {}, 'Agentes'),
+        h('div', { class: 'grupo-topo' },
+          h('h2', {}, 'Agentes'),
+          h('span', { class: 'espaco' }),
+          h('button', {
+            type: 'button', class: 'bt bt-mini', title: 'Usar o mesmo modelo de IA em todos os agentes',
+            onclick: (ev) => abrirPopover(ev.currentTarget, itensDeModelo((escolha) => { for (const m of modelos) aba.motores[m.id] = escolha; redesenharPagina(aba); })),
+          }, ic('sparkle'), 'Mesmo modelo para todos')),
+        h('p', { class: 'campo-dica' }, resumoDosMotores()),
         h('div', { class: 'grade-modelos' }, modelos.map(cartao)),
         h('div', { class: 'linha-botoes' },
           h('button', { class: 'bt', onclick: () => criar('vazio') }, 'Só com o Receptor'),
@@ -97,6 +218,14 @@ PAGINAS.montar = {
   },
 };
 
+/** "Neste PC: Claude Code logado · Codex não instalado · 1 provedor por API". */
+function resumoDosMotores() {
+  if (!S.situacaoMotores) return 'Vendo quais modelos de IA existem neste PC…';
+  const cli = ['claude', 'codex'].map((m) => `${nomeDoMotor(m)} ${motorPronto(m) ? 'pronto' : situacaoDoMotor(m)}`);
+  const api_ = (S.provedores || []).filter((p) => p.temChave || p.semChave).length;
+  return `Neste PC: ${[...cli, api_ ? `${api_} provedor(es) por API` : null].filter(Boolean).join(' · ')}. Cada agente já vem com um que funciona aqui; clique no modelo do card para trocar.`;
+}
+
 function copiarDeOutroProjeto(criar) {
   const outros = S.config.projetos.filter((p) => p !== S.projeto.caminho);
   abrirPaleta({
@@ -112,17 +241,6 @@ function copiarDeOutroProjeto(criar) {
       });
     },
   });
-}
-
-function desenharOrbitaVazia() {
-  return svg('svg', { class: 'orbita orbita-pequena', viewBox: '0 0 120 80', 'aria-hidden': 'true' },
-    svg('ellipse', { class: 'orbita-anel', cx: 60, cy: 40, rx: 52, ry: 22, transform: 'rotate(-14 60 40)' }),
-    svg('circle', { class: 'orbita-planeta', cx: 60, cy: 40, r: 11 }),
-    [0.3, 1.9, 3.4, 4.9].map((ang, i) => svg('circle', {
-      class: 'orbita-lua', cx: 60 + 52 * Math.cos(ang) * Math.cos(-0.244) - 22 * Math.sin(ang) * Math.sin(-0.244),
-      cy: 40 + 52 * Math.cos(ang) * Math.sin(-0.244) + 22 * Math.sin(ang) * Math.cos(-0.244), r: 4.5,
-      cor: ['#f5b94a', '#e879f9', '#60a5fa', '#4ade80'][i],
-    })));
 }
 
 /* ---------- editar time ---------- */

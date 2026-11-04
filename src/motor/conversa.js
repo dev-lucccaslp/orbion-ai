@@ -10,6 +10,7 @@ const { randomUUID } = require('node:crypto');
 const { rodarApi } = require('./api');
 const { lerSkill } = require('./skills');
 const projetoCfg = require('./projeto');
+const idioma = require('./idioma');
 const anexosMod = require('./anexos');
 const tokens = require('./tokens');
 
@@ -57,7 +58,7 @@ function sistema(projeto, modo) {
     const s = lerSkill(modo, projeto);
     if (s) partes.push(`# Modo desta conversa: ${s.nome}\n${s.corpo}`);
   }
-  return partes.join('\n');
+  return idioma.noIdioma(partes.join('\n')); // a conversa responde no idioma da pessoa
 }
 
 /** Roda a mensagem no Claude Code, com a sessão do próprio CLI e o texto chegando aos pedaços. */

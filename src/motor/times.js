@@ -68,7 +68,7 @@ function idLivre(projeto, nome) {
  * Cria um time. origem: 'padrao' (Receptor, PO, Designer, Dev, Tester), 'vazio' (só o Receptor),
  * uma lista de modelos, ou { projeto, time } para copiar um time que já existe (deste ou de outro projeto).
  */
-function criar(projeto, { nome, cor, descricao, origem = 'padrao' }) {
+function criar(projeto, { nome, cor, descricao, origem = 'padrao', motores = {} }) {
   const id = idLivre(projeto, nome || 'time');
   const usados = listar(projeto).map((t) => t.cor);
   salvarInfo(projeto, id, { nome: nome || 'Novo time', cor: cor || CORES.find((c) => !usados.includes(c)) || CORES[0], descricao });
@@ -77,6 +77,8 @@ function criar(projeto, { nome, cor, descricao, origem = 'padrao' }) {
     fs.cpSync(de, ag.pastaAgentes(projeto, id), { recursive: true });
   } else {
     ag.prepararTime(projeto, id, Array.isArray(origem) ? origem : origem === 'vazio' ? ['receptor'] : ag.TIME_PADRAO);
+    // O modelo de IA que a pessoa escolheu (ou que o Orbion achou neste PC) para cada agente.
+    for (const [agente, escolha] of Object.entries(motores || {})) if (escolha?.motor) ag.ajustarMotor(projeto, id, agente, escolha);
   }
   return id;
 }

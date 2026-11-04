@@ -21,6 +21,7 @@ const { PLANO, PASSE } = require('./esquemas');
 const projetoCfg = require('./projeto');
 const { caminhos: anexosCaminhos } = require('./anexos');
 const tokens = require('./tokens');
+const fluxosMod = require('./fluxos');
 const times = require('./times');
 
 const pastaExecucoes = (projeto) => path.join(projeto, '.orbion', 'execucoes');
@@ -80,6 +81,7 @@ function validarPlano(bruto, time, maxTarefas = 20) {
       descricao: t.descricao || '',
       criterio_pronto: t.criterio_pronto || '',
       depende_de: (t.depende_de || []).map(String),
+      blocos: (t.blocos || []).map((b) => fluxosMod.slug(b)),
     });
   }
   tarefas.forEach((t, i) => {
@@ -91,7 +93,11 @@ function validarPlano(bruto, time, maxTarefas = 20) {
     });
   });
   const tipo = !tarefas.length ? 'pergunta' : ['verificacao', 'mudanca'].includes(bruto.tipo) ? bruto.tipo : 'mudanca';
-  return { tipo, entendimento: bruto.entendimento || '', tarefas };
+  // O fluxo do plano: só blocos e ligações que fecham, e cada tarefa apontando só para blocos que existem.
+  const fluxo = fluxosMod.normalizar(bruto.fluxo || {});
+  const ids = new Set(fluxo.blocos.map((b) => b.id));
+  for (const t of tarefas) t.blocos = [...new Set(t.blocos)].filter((b) => ids.has(b));
+  return { tipo, entendimento: bruto.entendimento || '', tarefas, fluxo };
 }
 
 class Execucao extends EventEmitter {
@@ -104,7 +110,7 @@ class Execucao extends EventEmitter {
    * @param {Trava} [op.trava] trava de escrita do projeto, dividida entre os pedidos abertos
    * @param {(p: object) => Promise<{acao: string, texto?: string}>} op.perguntar
    */
-  constructor({ projeto, time, pedido, agente = null, fio = null, somenteLeitura = false, anexos = [], config = {}, trava = new Trava(), perguntar }) {
+  constructor({ projeto, time, pedido, agente = null, fio = null, somenteLeitura = false, anexos = [], fluxoBase = null, blocoBase = null, config = {}, trava = new Trava(), perguntar }) {
     super();
     this.projeto = projeto;
     this.time = time;
@@ -112,6 +118,9 @@ class Execucao extends EventEmitter {
     this.config = { ...CONFIG_PADRAO, ...projetoCfg.lerConfig(projeto), ...config, comandos: { ...CONFIG_PADRAO.comandos, ...config.comandos } };
     this.trava = trava;
     this.perguntar = perguntar;
+    // Pedido que muda um fluxo que já existe (veio do clique num bloco): o plano parte dele.
+    this.fluxoBase = fluxoBase ? fluxosMod.ler(projeto).fluxos.find((x) => x.id === fluxoBase) || null : null;
+    this.blocoBase = this.fluxoBase?.blocos.some((b) => b.id === blocoBase) ? blocoBase : null;
     this.controle = new AbortController();
     this.controles = new Map(); // tarefa → AbortController
     this.filaPerguntas = Promise.resolve();
@@ -124,8 +133,11 @@ class Execucao extends EventEmitter {
       // tipo: pergunta | verificacao (ninguém altera nada) | mudanca. "Só validar" força verificação.
       tipo: somenteLeitura ? 'verificacao' : null, somenteLeitura,
       anexos, // imagens da pessoa: [{ nome, tipo, rel }] em .orbion/anexos
+      // fluxo: por onde a funcionalidade passa (blocos e ligações), desenhado no plano e completado pelos agentes
+      fluxo: null,
       entendimento: '', tarefas: [], erro: null, gastoApi: 0, pergunta: null,
     };
+    if (this.fluxoBase) this.estado.fluxo = this.fluxoDoPlano(null); // a tela já mostra o fluxo enquanto o Receptor planeja
     fs.mkdirSync(this.pasta, { recursive: true });
     this.salvar();
   }
@@ -264,11 +276,11 @@ class Execucao extends EventEmitter {
     const pedido = this.estado.pedido;
     const conversa = conversaDoFio(this.projeto, this.estado.fio, this.estado.id);
     const tarefa = {
-      id: 't1', agente: a.id, titulo: pedido.split('\n')[0].slice(0, 90), descricao: conversa ? `${conversa}\n\n# O pedido agora\n${pedido}` : pedido, criterio_pronto: 'Atender o pedido da pessoa.', depende_de: [],
+      id: 't1', agente: a.id, titulo: pedido.split('\n')[0].slice(0, 90), descricao: conversa ? `${conversa}\n\n# O pedido agora\n${pedido}` : pedido, criterio_pronto: 'Atender o pedido da pessoa.', depende_de: [], blocos: this.blocoBase ? [this.blocoBase] : [],
       status: 'pendente', tentativas: 0, voltas: 0, passe: null, erro: null, gastoApi: 0, correcao: null, respostaHumana: null, inicio: null, fim: null,
     };
     this.avisar(`Pedido direto para ${a.nome}, sem passar pelo Receptor.`);
-    this.mudar({ entendimento: `Pedido direto para ${a.nome}.`, tarefas: [tarefa] });
+    this.mudar({ entendimento: `Pedido direto para ${a.nome}.`, tarefas: [tarefa], fluxo: this.fluxoDoPlano(null) });
   }
 
   async planejar() {
@@ -283,7 +295,7 @@ class Execucao extends EventEmitter {
     const conversa = conversaDoFio(this.projeto, this.estado.fio, this.estado.id);
     const anteriores = conversa ? [] : listarExecucoes(this.projeto).filter((e) => e.id !== this.estado.id).slice(0, this.config.pedidosAnteriores);
     const memoria = this.config.memoria ? projetoCfg.lerMemoria(this.projeto) : '';
-    const prompt = promptReceptor({ receptor, time, pedido: this.estado.pedido, projeto: this.projeto, anteriores, conversa, somenteLeitura: this.estado.somenteLeitura, anexos: this.estado.anexos || [], config: this.config, memoria });
+    const prompt = promptReceptor({ receptor, time, pedido: this.estado.pedido, projeto: this.projeto, anteriores, conversa, somenteLeitura: this.estado.somenteLeitura, anexos: this.estado.anexos || [], fluxoAtual: this.fluxoBase, config: this.config, memoria });
     const r = await this.chamar(receptor, 'receptor', 1, prompt, PLANO, acharSkills(receptor.skills, this.projeto).achadas, this.controle.signal);
     if (r.cancelado) return this.mudar({ status: 'cancelada' });
     if (r.erro) throw new Error(`O Receptor não conseguiu montar o plano: ${r.erro}`);
@@ -291,7 +303,7 @@ class Execucao extends EventEmitter {
     const plano = validarPlano(r.saida, time, this.config.maxTarefas);
     fs.writeFileSync(path.join(this.pasta, 'plano.json'), JSON.stringify(plano, null, 2));
     const tipo = this.estado.somenteLeitura && plano.tipo === 'mudanca' ? 'verificacao' : plano.tipo;
-    this.mudar({ tipo, entendimento: plano.entendimento, tarefas: plano.tarefas });
+    this.mudar({ tipo, entendimento: plano.entendimento, tarefas: plano.tarefas, fluxo: this.fluxoDoPlano(plano.fluxo) });
 
     if (!plano.tarefas.length) {
       this.avisar('O Receptor respondeu sem precisar do time.');
@@ -323,6 +335,39 @@ class Execucao extends EventEmitter {
     if (this.estado.tipo === 'verificacao') return 'Só verificação: os agentes leem e consultam, ninguém altera arquivos, e ninguém volta para corrigir.';
     const editam = [...new Set(this.estado.tarefas.map((t) => this.agentes.find((a) => a.id === t.agente)).filter((a) => a?.editaArquivos).map((a) => a.nome))];
     return editam.length ? `Vai mudar o projeto: ${editam.join(', ')} pode${editam.length > 1 ? 'm' : ''} criar e editar arquivos.` : 'Ninguém neste plano edita arquivos.';
+  }
+
+  /** O fluxo que a tela mostra ao vivo: o do plano, ou o que já existia com as mudanças do plano por cima. */
+  fluxoDoPlano(doPlano) {
+    if (this.fluxoBase) {
+      const base = this.fluxoBase;
+      const junto = fluxosMod.mesclar(base, doPlano?.blocos.length ? { ...doPlano, id: base.id } : null);
+      return { ...junto, id: base.id, nome: base.nome, posicoes: base.posicoes || {}, blocosBase: base.blocos.map((b) => b.id), alvo: this.blocoBase };
+    }
+    return doPlano?.blocos.length ? { ...doPlano, posicoes: {} } : null;
+  }
+
+  /** Junta no fluxo do pedido o que o agente fez (blocos, ligações e arquivos) e guarda no projeto. */
+  anotarFluxo(t, passe) {
+    const doPasse = fluxosMod.normalizar(passe.fluxo || {}, { id: this.estado.fluxo?.id || 'fluxo' });
+    let fluxo = this.estado.fluxo;
+    if (!fluxo && !doPasse.blocos.length) return;
+    fluxo = fluxo
+      ? { ...fluxosMod.mesclar(fluxo, doPasse), id: fluxo.id, nome: fluxo.nome, posicoes: fluxo.posicoes || {}, blocosBase: fluxo.blocosBase }
+      : { ...doPasse, id: fluxosMod.slug(t.titulo) || 'fluxo', nome: t.titulo, posicoes: {} };
+    t.blocos = [...new Set([...(t.blocos || []), ...doPasse.blocos.map((b) => b.id)])];
+    for (const b of fluxo.blocos) if (t.blocos.includes(b.id)) b.agentes = [...new Set([...(b.agentes || []), t.agente])];
+    // Arquivo que o agente mexeu e não ficou em bloco nenhum vai para o primeiro bloco da tarefa.
+    const usados = new Set(fluxo.blocos.flatMap((b) => b.arquivos));
+    const alvo = fluxo.blocos.find((b) => t.blocos.includes(b.id));
+    if (alvo) for (const a of (passe.arquivos || []).map(fluxosMod.limparCaminho)) if (a && !usados.has(a)) alvo.arquivos.push(a);
+    if (t.passe?.previa) for (const b of fluxo.blocos) if (t.blocos.includes(b.id) && b.tipo === 'tela') b.previa = t.passe.previa;
+    this.estado.fluxo = fluxo;
+    if (passe.status === 'concluida' && fluxo.blocos.length) {
+      try {
+        fluxosMod.gravar(this.projeto, { ...fluxo, blocosBase: undefined, alvo: undefined, origem: 'pedido', pedidos: [this.estado.id] });
+      } catch {}
+    }
   }
 
   async rodarTarefa(t) {
@@ -386,6 +431,9 @@ class Execucao extends EventEmitter {
       aprendizados: Array.isArray(passe.aprendizados) ? passe.aprendizados.filter(Boolean) : [],
       previa: previaDoPasse(passe),
     };
+    try {
+      this.anotarFluxo(t, passe);
+    } catch {} // o fluxo é um extra: nunca derruba a tarefa
     if (this.config.memoria && t.passe.aprendizados.length) {
       projetoCfg.anotarMemoria(this.projeto, agente.nome, t.passe.aprendizados);
       this.avisar(`${agente.nome} anotou ${t.passe.aprendizados.length} aprendizado(s) na memória do projeto.`, t.id);

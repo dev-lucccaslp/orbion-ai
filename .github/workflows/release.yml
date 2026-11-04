@@ -1,0 +1,73 @@
+# Gera os instaladores do Orbion.ai para Windows, macOS e Linux e publica no GitHub Releases.
+# Roda quando sobe uma tag de versão (git tag v0.1.0 && git push origin v0.1.0) ou à mão, pela aba Actions.
+# Os arquivos têm nome fixo, então os links de download do README sempre apontam para a última versão.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  instaladores:
+    name: Instalador ${{ matrix.nome }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            nome: Windows
+          - os: macos-latest
+            nome: macOS
+          - os: ubuntu-latest
+            nome: Linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Empacotar
+        run: npx --yes electron-builder@26 --publish never
+        env:
+          # Sem certificado de assinatura por enquanto (o Windows e o macOS avisam na primeira abertura).
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instalador-${{ matrix.nome }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+          if-no-files-found: error
+
+  publicar:
+    name: Publicar a versão
+    needs: instaladores
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: instaladores
+          merge-multiple: true
+      - name: Criar o release com os instaladores
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSAO="v$(node -p "require('./package.json').version")"
+          TAG="${GITHUB_REF_NAME}"
+          case "$TAG" in v*) ;; *) TAG="$VERSAO" ;; esac
+          ls -la instaladores
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" instaladores/* --clobber
+          else
+            gh release create "$TAG" instaladores/* --title "Orbion.ai $TAG" --generate-notes --target "$GITHUB_SHA"
+          fi
